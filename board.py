@@ -56,7 +56,18 @@ class Board:
     def set(self, piece, x, y):
         self.board[y][x] = piece
 
+    def str_from_turn(self, color):
+        if color == Black:
+            return 'Black'
+        elif color == White:
+            return 'White'
+        else:
+            return 'None'
+
     def __str__(self):
+        current_turn = self.str_from_turn(self.turn)
+        pudding = "      "
+
         ret = '  A B C D E F G H\n'
         i = 1
         for row in self.board:
@@ -70,18 +81,16 @@ class Board:
                 else:
                     ret += '.'
                 ret += ''
+            if i == 4:
+                ret += pudding + current_turn + '\'s turn'
+            elif i == 5:
+                ret += pudding + 'Black: ' + str(self.n_black())
+            elif i == 6:
+                ret += pudding + 'White: ' + str(self.n_white())
             ret += '\n'
             i += 1
-        ret += '\n'
-        if self.turn == Black:
-            ret += 'Black'
-        elif self.turn == White:
-            ret += 'White'
-        else:
-            ret += 'None'
-        ret += '\'s turn\n'
-        ret += 'Black: ' + str(self.n_black()) + '\n'
-        ret += 'White: ' + str(self.n_white()) + '\n'
+
+        # ret += '\n'
 
         return ret
 
