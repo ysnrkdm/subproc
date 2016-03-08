@@ -149,7 +149,6 @@ class Board:
     def put_s(self, stri):
         out = -1
         if stri == 'PS':
-            # do nothing
             out = 0
         else:
             b = re.findall(r"[WB]*([a-zA-Z])([0-9])", stri)
@@ -169,15 +168,18 @@ class Board:
                 self.turn = Black
         return out
 
-    def serialize(self):
+    def serialize_tuple(self):
+        return self.board, self.turn
+
+    def serialize_str(self):
         ret = ''
         i = 1
         for row in self.board:
             for cell in row:
                 ret += ''
-                if cell == 1:
+                if cell == White:
                     ret += 'X'
-                elif cell == 2:
+                elif cell == Black:
                     ret += 'O'
                 else:
                     ret += '-'

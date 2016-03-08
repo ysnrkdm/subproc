@@ -5,7 +5,7 @@ import board
 
 class GameRunner:
 
-    def __init__(self, proc_a_path, proc_b_path):
+    def __init__(self, proc_a_path, proc_b_path, game_recorder):
         print 'Starting engines...'
         proc_a = subprocess.Popen(proc_a_path, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         proc_b = subprocess.Popen(proc_b_path, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -13,6 +13,7 @@ class GameRunner:
 
         self.proc_a = proc_a
         self.proc_b = proc_b
+        self.recorder = game_recorder
 
     def go(self, proc):
         proc.stdin.write('go\n')
@@ -89,6 +90,8 @@ class GameRunner:
         self.init(self.proc_b)
 
         game_board = board.Board()
+        self.recorder.add(game_board.serialize_str())
+
         is_game_over = game_board.is_game_over()
 
         while not is_game_over:
@@ -96,6 +99,7 @@ class GameRunner:
             ha = self.go(self.proc_a).lower()
             game_board.put_s(ha)
             print game_board
+            self.recorder.add(game_board.serialize_str())
             self.play(self.proc_b, ha)
 
             is_game_over = game_board.is_game_over()
@@ -106,6 +110,7 @@ class GameRunner:
             hb = self.go(self.proc_b).lower()
             game_board.put_s(hb)
             print game_board
+            self.recorder.add(game_board.serialize_str())
             self.play(self.proc_a, hb)
 
             is_game_over = game_board.is_game_over()
@@ -114,6 +119,8 @@ class GameRunner:
 
         self.end_process(self.proc_a)
         self.end_process(self.proc_b)
+
+        self.recorder.store()
 
         if game_board.n_black() > game_board.n_white():
             won = "Black"
