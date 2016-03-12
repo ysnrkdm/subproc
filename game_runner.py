@@ -90,7 +90,7 @@ class GameRunner:
         self.init(self.proc_b)
 
         game_board = board.Board()
-        self.recorder.add(game_board.serialize_str())
+        self.recorder.add(game_board)
 
         is_game_over = game_board.is_game_over()
 
@@ -99,7 +99,7 @@ class GameRunner:
             ha = self.go(self.proc_a).lower()
             game_board.put_s(ha)
             print game_board
-            self.recorder.add(game_board.serialize_str())
+            self.recorder.add(game_board)
             self.play(self.proc_b, ha)
 
             is_game_over = game_board.is_game_over()
@@ -110,7 +110,7 @@ class GameRunner:
             hb = self.go(self.proc_b).lower()
             game_board.put_s(hb)
             print game_board
-            self.recorder.add(game_board.serialize_str())
+            self.recorder.add(game_board)
             self.play(self.proc_a, hb)
 
             is_game_over = game_board.is_game_over()

@@ -24,6 +24,7 @@ class Board:
         self.board[3][3] = self.board[4][4] = White
         self.board[3][4] = self.board[4][3] = Black
         self.turn = Black
+        self.nturn = 0
 
     def count_over_board(self, fun):
         ret = 0
@@ -162,6 +163,7 @@ class Board:
                     out = -1
 
         if out >= 0:
+            self.nturn += 1
             if self.turn == Black:
                 self.turn = White
             else:
@@ -171,7 +173,16 @@ class Board:
     def serialize_tuple(self):
         return self.board, self.turn
 
-    def serialize_str(self):
+    def serialize_str(self, append_turn=True):
+        ret = ''
+        ret += self.serialize_board()
+        if append_turn:
+            ret += ' '
+            ret += self.serialize_turn()
+
+        return ret
+
+    def serialize_board(self):
         ret = ''
         i = 1
         for row in self.board:
@@ -186,14 +197,16 @@ class Board:
                 ret += ''
             ret += ''
             i += 1
-        ret += ' '
+        return ret
+
+    def serialize_turn(self):
+        ret = ''
         if self.turn == Black:
             ret += 'O'
         elif self.turn == White:
             ret += 'X'
         else:
             ret += ''
-
         return ret
 
 
