@@ -18,10 +18,6 @@ class GameRecorder(object):
     def store(self):
         pass
 
-    @abstractmethod
-    def load(self):
-        pass
-
 
 class FlatFileRecorder(GameRecorder):
 
@@ -48,9 +44,6 @@ class FlatFileRecorder(GameRecorder):
             f.write(line + "\n")
         f.close()
         print 'File closed\n'
-
-    def load(self):
-        raise NotImplementedError('load is not implemented yet, sorry!')
 
 GameRecorder.register(FlatFileRecorder)
 
@@ -93,8 +86,5 @@ class RedisRecorder(GameRecorder):
                 self.r.hset(key_turn, k, v)
                 self.r.hset(key_turn, 'timestamp', self.timestamp)
             n_turn += 1
-
-    def load(self):
-        raise NotImplementedError('load is not implemented yet, sorry!')
 
 GameRecorder.register(RedisRecorder)
