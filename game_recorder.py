@@ -52,14 +52,12 @@ class RedisRecorder(GameRecorder):
 
     def __init__(self):
         self.r = None
-        self.r_count = None
         self.lines = []
         self.dbkeyprefix = 'DEFAULT'
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     def configure(self, title, meta, config_dict):
         self.r = redis.Redis(host=config_dict['host'], port=config_dict['port'], db=config_dict['db'])
-        self.r_count = redis.Redis(host=config_dict['hostcount'], port=config_dict['portcount'], db=config_dict['dbcount'])
         self.dbkeyprefix = config_dict['dbkeyprefix']
 
     def add(self, game_board):
@@ -72,11 +70,12 @@ class RedisRecorder(GameRecorder):
         self.lines.append(obj)
 
     def get_id(self):
-        if not self.r_count.exists('count'):
-            self.r_count.set('count', 0)
-        return self.r_count.incr('count')
+        if not self.r.exists('count'):
+            self.r.set('count', 0)
+        return self.r.incr('count')
 
     def store(self):
+        # TODO: make below as ACID
         book_id = self.get_id()
         entry_key = ':'.join([self.dbkeyprefix, str(book_id)])
         n_turn = 0

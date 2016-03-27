@@ -99,6 +99,7 @@ class GameRunner:
             ha = self.go(self.proc_a).lower()
             game_board.put_s(ha)
             print game_board
+            # self.show(self.proc_a, True)
             self.recorder.add(game_board)
             self.play(self.proc_b, ha)
 

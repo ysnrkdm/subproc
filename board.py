@@ -149,7 +149,7 @@ class Board:
 
     def put_s(self, stri):
         out = -1
-        if stri == 'PS':
+        if stri == 'PS' or stri == 'ps':
             out = 0
         else:
             b = re.findall(r"[WB]*([a-zA-Z])([0-9])", stri)
@@ -208,6 +208,27 @@ class Board:
         else:
             ret += ''
         return ret
+
+    def deserialize(self, board_str, turn_str, turn):
+        i = 0
+        for s in board_str:
+            if s == 'X':
+                cell = White
+            elif s == 'O':
+                cell = Black
+            else:
+                cell = Empty
+            self.set(cell, i % 8, i / 8)
+            i += 1
+
+        if turn_str == 'X':
+            self.turn = White
+        elif turn_str == 'O':
+            self.turn = Black
+        else:
+            self.turn = Empty
+
+        self.nturn = turn
 
 
 def is_within_board(x, y):
