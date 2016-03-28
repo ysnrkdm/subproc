@@ -2,6 +2,7 @@ import redis
 import board
 import random
 import math
+import slack
 
 
 def update_parameters(id_processed, parameters):
@@ -67,7 +68,7 @@ def last_processed():
     return int(r_param.get(key_last_processed))
 
 
-class SimpleLearn:
+class SimpleLearnPhased:
     def __init__(self):
         self.a = 0.03
         self.b = 0.003           # learning rate
@@ -109,13 +110,61 @@ class SimpleLearn:
         return list(ret)
 
     def store_batch_stats(self, books):
-        pass
-
-    def learn_and_update_batch(self, books):
-        self.store_batch_stats(books)
+        black_wins = 0
+        white_wins = 0
+        disc_diff = []
+        book_ids = []
 
         for book_id, book in books:
-            self.learn_and_update_one(book_id, book)
+            last_book = book[0]
+            last_board = board.Board()
+            last_board.deserialize(last_book['book'], last_book['whosturn'], last_book['turn'])
+            black_discs = last_board.n_black()
+            white_discs = last_board.n_white()
+            disc_diff.append(black_discs - white_discs)
+            if black_discs > white_discs:
+                black_wins += 1
+            elif white_discs > black_wins:
+                white_wins += 1
+            else:
+                pass
+            book_ids.append(book_id)
+
+        black_win_rate = float(black_wins) / float(len(books))
+        white_win_rate = float(white_wins) / float(len(books))
+        min_disc_diff = min(disc_diff)
+        max_disc_diff = max(disc_diff)
+        avg_disc_diff = float(sum(disc_diff)) / float(len(books))
+        book_id_from = min(book_ids)
+        book_id_to = max(book_ids)
+
+        key_for_update_stats = key_for_param(['stats', str(book_id_from), str(book_id_to)])
+        r_param = redis_param()
+        payload = {
+            'black_win_rate': black_win_rate,
+            'white_win_rate': white_win_rate,
+            'min_disc_diff': min_disc_diff,
+            'max_disc_diff': max_disc_diff,
+            'avg_disc_diff': avg_disc_diff
+        }
+        r_param.hmset(key_for_update_stats,payload)
+
+        slack.post_message(
+            ('Done matches, from %d to %d' % (book_id_from, book_id_to)) + '\n' +
+            ('win rate: black/white = %.4f/%.4f' % (black_win_rate * 100.0, white_win_rate * 100.0)) + '\n' +
+            ('disc diff: min/avg/max = %d/%.2f/%d' % (min_disc_diff, avg_disc_diff, max_disc_diff)) + '\n' +
+            'disc diffs: %s' % str(disc_diff))
+
+    def learn_and_update_batch(self, books):
+        err = 0
+        new_param = 0
+        for book_id, book in books:
+            err, new_param = self.learn_and_update_one(book_id, book)
+
+        slack.post_message(
+            'Learn complete' + '\n' +
+            ('err: %s' % str(err)) + '\n' +
+            'new param: %s' % str(new_param))
 
     def learn_and_update_one(self, book_id, book):
         print book[0]
@@ -141,6 +190,8 @@ class SimpleLearn:
 
         # store parameter
         update_parameters(book_id, new_param)
+
+        return err, new_param
 
     def fit_parameters(self, parameters, samples):
         err = 99999
