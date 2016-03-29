@@ -45,7 +45,8 @@ def get_reader():
 
 
 def main():
-    last = simple_learn_phased.last_processed()
+    learn = simple_learn_phased.SimpleLearnPhased()
+    last = learn.last_processed()
 
     print 'last processed: %d' % last
 
