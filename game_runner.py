@@ -14,6 +14,9 @@ class GameRunner:
         self.proc_a = proc_a
         self.proc_b = proc_b
         self.recorder = game_recorder
+        self.proc_a_name = 'proc_a'
+        self.proc_b_name = 'proc_b'
+        self.hamletparam = ''
 
     def go(self, proc):
         proc.stdin.write('go\n')
@@ -23,11 +26,15 @@ class GameRunner:
         output = re.sub(r'[\r\n]+', "", output)
         print output.rstrip()
         # X plays XX
-        a = re.findall(r"(.+) plays ([a-zA-Z][0-9]|PS)", output.rstrip())
+        a = re.findall(r">(.+) plays ([a-zA-Z][0-9]|PS)", output.rstrip())
+        if len(self.proc_a_name) == 0 or self.proc_a_name == 'proc_a':
+            self.proc_a_name = a[0][0]
         if len(a) > 0:
             # print a
             return a[0][1]
-        b = re.findall(r"(.+) plays [WB]([a-zA-Z][0-9]|PS)", output.rstrip())
+        b = re.findall(r">(.+) plays [WB]([a-zA-Z][0-9]|PS)", output.rstrip())
+        if len(self.proc_b_name) == 0 or self.proc_b_name == 'proc_b':
+            self.proc_b_name = b[0][0]
         # print b
         return b[0][1]
 
@@ -54,6 +61,15 @@ class GameRunner:
         remainder = proc.communicate()[0]
         # print remainder
         # The proc should not be used after calling quit
+
+    def hamlet_param(self, proc):
+        proc.stdin.write('verbose p\n')
+        output = proc.stdout.readline()
+
+        b = output.rstrip()
+        proc.stdin.write('verbose 0\n')
+
+        return b
 
     # Returns true if it's game over, if not game over, returns false
     def show(self, proc, verbose):
@@ -117,6 +133,9 @@ class GameRunner:
             is_game_over = game_board.is_game_over()
             if is_game_over:
                 break
+
+        self.recorder.add_meta({'proc_a': self.proc_a_name, 'prob_b': self.proc_b_name,
+                                'hamletparam': self.hamlet_param(self.proc_b)})
 
         self.end_process(self.proc_a)
         self.end_process(self.proc_b)

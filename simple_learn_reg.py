@@ -14,14 +14,14 @@ def mask_count(book, side, mask):
     return ret
 
 
-class SimpleLearnPhased(LearnBasePlus):
+class SimpleLearnReg(LearnBasePlus):
     def __init__(self):
         self.a = 0.03
         self.b = 0.003           # learning rate
         self.l = 0.90            # turn decay in TD-lambda
 
     def name(self):
-        return 'simplelearn'
+        return 'simplelearnreg'
 
     def update_state_map(self, a_book, side, turn_left, value):
         r_param = self._redis_param()
@@ -58,52 +58,6 @@ class SimpleLearnPhased(LearnBasePlus):
 
         return list(ret)
 
-    # def store_batch_stats(self, books):
-    #     black_wins = 0
-    #     white_wins = 0
-    #     disc_diff = []
-    #     book_ids = []
-    #
-    #     for book_id, book in books:
-    #         last_book = book[0]
-    #         last_board = board.Board()
-    #         last_board.deserialize(last_book['book'], last_book['whosturn'], last_book['turn'])
-    #         black_discs = last_board.n_black()
-    #         white_discs = last_board.n_white()
-    #         disc_diff.append(black_discs - white_discs)
-    #         if black_discs > white_discs:
-    #             black_wins += 1
-    #         elif white_discs > black_wins:
-    #             white_wins += 1
-    #         else:
-    #             pass
-    #         book_ids.append(book_id)
-    #
-    #     black_win_rate = float(black_wins) / float(len(books))
-    #     white_win_rate = float(white_wins) / float(len(books))
-    #     min_disc_diff = min(disc_diff)
-    #     max_disc_diff = max(disc_diff)
-    #     avg_disc_diff = float(sum(disc_diff)) / float(len(books))
-    #     book_id_from = min(book_ids)
-    #     book_id_to = max(book_ids)
-    #
-    #     key_for_update_stats = self.key_for_param(['stats', str(book_id_from), str(book_id_to)])
-    #     r_param = self.redis_param()
-    #     payload = {
-    #         'black_win_rate': black_win_rate,
-    #         'white_win_rate': white_win_rate,
-    #         'min_disc_diff': min_disc_diff,
-    #         'max_disc_diff': max_disc_diff,
-    #         'avg_disc_diff': avg_disc_diff
-    #     }
-    #     r_param.hmset(key_for_update_stats,payload)
-    #
-    #     slack.post_message(
-    #         ('Done matches, from %d to %d' % (book_id_from, book_id_to)) + '\n' +
-    #         ('win rate: black/white = %.4f/%.4f' % (black_win_rate * 100.0, white_win_rate * 100.0)) + '\n' +
-    #         ('disc diff: min/avg/max = %d/%.2f/%d' % (min_disc_diff, avg_disc_diff, max_disc_diff)) + '\n' +
-    #         'disc diffs: %s' % str(disc_diff))
-
     def learn_and_update_batch(self, books):
         err = 0
         new_param = 0
@@ -111,9 +65,9 @@ class SimpleLearnPhased(LearnBasePlus):
             err, new_param = self.__learn_and_update_one(book_id, book)
 
         slack.post_message(
-            'Learn complete' + '\n' +
-            ('err: %s' % str(err)) + '\n' +
-            'new param: %s' % str(new_param))
+                'Learn complete' + '\n' +
+                ('err: %s' % str(err)) + '\n' +
+                'new param: %s' % str(map(lambda x: '%.3f' % x, new_param)))
 
     def __learn_and_update_one(self, book_id, book):
         print book[0]
@@ -130,7 +84,7 @@ class SimpleLearnPhased(LearnBasePlus):
                 current_value, new_value = self.update_state_map(turn, side, last_turn - int(turn['turn']), value)
 
         # pick up at most 100 states and fit parameters
-        parameters = self.__read_parameters()
+        parameters = self.read_parameters()
         samples = self.__random_sample(500)
         err, new_param = self.__fit_parameters(parameters, samples)
         print 'Learn complete:'
@@ -224,7 +178,7 @@ class SimpleLearnPhased(LearnBasePlus):
         key_last_processed = self.key_for_param(['last_processed'])
         r_param.set(key_last_processed, id_processed)
 
-    def __read_parameters(self):
+    def read_parameters(self):
         r_param = self._redis_param()
         key = self.key_for_param(['param'])
         if not r_param.exists(key):

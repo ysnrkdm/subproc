@@ -55,7 +55,11 @@ class RedisReader(GameReader):
         entry_keys_to_process = self.list_by_id(book_id)
         # print entry_keys_to_process
         ret = []
+        meta_key = ''
         for entry_key in entry_keys_to_process:
+            if 'meta' in entry_key:
+                meta_key = entry_key
+                break
             (turn, timestamp, whosturn, book, end) =\
                 self.r.hmget(entry_key, 'turn', 'timestamp', 'whosturn', 'book', 'end')
             obj = {
@@ -67,7 +71,12 @@ class RedisReader(GameReader):
             }
             ret.append(obj)
 
-        return ret
+        if len(meta_key) > 0:
+            meta = self.r.hgetall(meta_key)
+        else:
+            meta = {}
+
+        return meta, ret
 
     def load_all(self):
         ids = self.list_all()

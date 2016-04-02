@@ -18,6 +18,10 @@ class GameRecorder(object):
     def store(self):
         pass
 
+    @abstractmethod
+    def add_meta(self, dict):
+        pass
+
 
 class FlatFileRecorder(GameRecorder):
 
@@ -25,7 +29,7 @@ class FlatFileRecorder(GameRecorder):
         self.lines = []
         self.output_path = ''
         self.title = ''
-        self.meta = ''
+        self.meta = {}
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     def configure(self, title, meta, config_dict):
@@ -45,6 +49,9 @@ class FlatFileRecorder(GameRecorder):
         f.close()
         print 'File closed\n'
 
+    def add_meta(self, dict):
+        self.meta.update(dict)
+
 GameRecorder.register(FlatFileRecorder)
 
 
@@ -53,6 +60,7 @@ class RedisRecorder(GameRecorder):
     def __init__(self):
         self.r = None
         self.lines = []
+        self.meta = {'meta': 'meta'}
         self.dbkeyprefix = 'DEFAULT'
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -85,5 +93,10 @@ class RedisRecorder(GameRecorder):
                 self.r.hset(key_turn, k, v)
                 self.r.hset(key_turn, 'timestamp', self.timestamp)
             n_turn += 1
+        key_meta = ':'.join([entry_key, 'meta'])
+        self.r.hmset(key_meta, self.meta)
+
+    def add_meta(self, dict):
+        self.meta.update(dict)
 
 GameRecorder.register(RedisRecorder)
