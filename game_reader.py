@@ -59,7 +59,7 @@ class RedisReader(GameReader):
         for entry_key in entry_keys_to_process:
             if 'meta' in entry_key:
                 meta_key = entry_key
-                break
+                continue
             (turn, timestamp, whosturn, book, end) =\
                 self.r.hmget(entry_key, 'turn', 'timestamp', 'whosturn', 'book', 'end')
             obj = {

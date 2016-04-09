@@ -4,18 +4,17 @@ from ConfigParser import SafeConfigParser
 import sys
 
 
-def main():
-    filename = sys.argv[1]
+def do_match(filename):
+
     parser = SafeConfigParser()
     parser.read(filename)
 
     proc_a_path = parser.get('proc', 'a_path')
     proc_b_path = parser.get('proc', 'b_path')
 
-    text_output_path = parser.get('textrecorder', 'output_path')
-
-    recorder = game_recorder.FlatFileRecorder()
-    recorder.configure('', '', {'output_path': text_output_path})
+    # text_output_path = parser.get('textrecorder', 'output_path')
+    # recorder = game_recorder.FlatFileRecorder()
+    # recorder.configure('', '', {'output_path': text_output_path})
 
     recorder = game_recorder.RedisRecorder()
     recorder.configure('', '', {
@@ -29,6 +28,12 @@ def main():
     won = gr.play_a_game()
 
     print "Game Over! " + won + " won!\n"
+
+
+def main():
+    filename = sys.argv[1]
+    do_match(filename)
+
 
 if __name__ == '__main__':
     main()
