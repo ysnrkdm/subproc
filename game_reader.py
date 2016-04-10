@@ -48,8 +48,8 @@ class RedisReader(GameReader):
 
     def list_all(self):
         entry_key = ':'.join([self.book_db_key_prefix, '*'])
-        list_from_redis = self.r.keys(entry_key)
-        return list_from_redis
+        list_from_db = self.r.keys(entry_key)
+        return list_from_db
 
     def load_by_id(self, book_id):
         entry_keys_to_process = self.list_by_id(book_id)
