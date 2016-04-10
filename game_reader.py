@@ -36,7 +36,7 @@ class RedisReader(GameReader):
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     def configure(self, title, meta, config_dict):
-        self.r = redis.Redis(host=config_dict['host'], port=config_dict['port'], db=config_dict['db'])
+        self.r = redis.Redis(host=config_dict['host'], port=config_dict['port'], db=config_dict['db'], password=config_dict['password'])
         self.book_db_key_prefix = config_dict['dbkeyprefix']
 
     def list_by_id(self, book_id):

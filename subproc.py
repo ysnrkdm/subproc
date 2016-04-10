@@ -1,16 +1,12 @@
 import game_runner
 import game_recorder
-from ConfigParser import SafeConfigParser
 import sys
+import config
 
 
-def do_match(filename):
-
-    parser = SafeConfigParser()
-    parser.read(filename)
-
-    proc_a_path = parser.get('proc', 'a_path')
-    proc_b_path = parser.get('proc', 'b_path')
+def do_match(conf):
+    proc_a_path = conf['proc_a_path']
+    proc_b_path = conf['proc_b_path']
 
     # text_output_path = parser.get('textrecorder', 'output_path')
     # recorder = game_recorder.FlatFileRecorder()
@@ -18,8 +14,10 @@ def do_match(filename):
 
     recorder = game_recorder.RedisRecorder()
     recorder.configure('', '', {
-        'host': 'localhost', 'port': 6379, 'db': 0,
-        'hostcount': 'localhost', 'portcount': 6379, 'dbcount': 1,
+        'host': conf['redis_hostname'], 'port': conf['redis_port'], 'db': conf['redis_db_book'],
+        'password': conf['redis_password'],
+        # 'hostcount': conf['redis_hostname'], 'portcount': conf['redis_port'], 'dbcount': conf['redis_db_book'],
+        # 'passwordcount': conf['redis_password'],
         'dbkeyprefix': 'othellobook'
     })
 
@@ -32,7 +30,8 @@ def do_match(filename):
 
 def main():
     filename = sys.argv[1]
-    do_match(filename)
+    conf = config.config_by_filename(filename)
+    do_match(conf)
 
 
 if __name__ == '__main__':

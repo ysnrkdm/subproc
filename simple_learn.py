@@ -20,6 +20,7 @@ def mask_count(book, side, mask):
 
 class SimpleLearn(LearnBasePlus):
     def __init__(self):
+        super(SimpleLearn, self).__init__()
         self.a = 0.03
         self.b = 0.003           # learning rate
         self.l = 0.90            # turn decay in TD-lambda

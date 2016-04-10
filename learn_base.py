@@ -14,6 +14,10 @@ class LearnBase(object):
         pass
 
     @abstractmethod
+    def configure(self, conf_dict):
+        pass
+
+    @abstractmethod
     def store_batch_stats(self, books):
         pass
 
@@ -31,6 +35,9 @@ class LearnBase(object):
 
 
 class LearnBasePlus(LearnBase):
+    def __init__(self):
+        self.conf = {}
+
     def key_for_param(self, keys):
         a_keys = [REDIS_KEY_PREFIX, self.name()] + keys
         return ':'.join(a_keys)
@@ -39,8 +46,11 @@ class LearnBasePlus(LearnBase):
     def name(self):
         pass
 
+    def configure(self, conf_dict):
+        self.conf = conf_dict
+
     def _redis_param(self):
-        r_param = redis.Redis(host='localhost', port=6379, db=2)
+        r_param = redis.Redis(host=self.conf['redis_hostname'], port=self.conf['redis_port'], db=self.conf['redis_db_param'], password=self.conf['redis_password'])
         return r_param
 
     def store_batch_stats(self, books):
