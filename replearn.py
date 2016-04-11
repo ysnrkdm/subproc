@@ -7,11 +7,11 @@ import config
 import sys
 
 
-MAX_BATCH_SIZE_PER_EPIC = 50
+MAX_BATCH_SIZE_PER_EPIC = 100
 
 SECONDS = 15
 
-EPIC_BATCH_SIZE = 10
+EPIC_BATCH_SIZE = 50
 
 
 def learn_books(conf, from_id, to_id):
