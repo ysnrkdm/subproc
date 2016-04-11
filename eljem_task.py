@@ -11,7 +11,7 @@ class ElJemTask(object):
         # Firstly, fetch the param, and generate param file
         print 'start paramgen...'
         file_full_path = conf['paramgen_output_path']
-        paramgen.write_data(params, file_full_path)
+        paramgen.write_data(file_full_path, params)
         print 'paramgen done. starting match...'
         print 'param used : %s' % params
 

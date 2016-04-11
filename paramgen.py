@@ -11,6 +11,7 @@ def conv_num(num):
 def write_data(file_full_path, parameters):
     norm_params = map(conv_num, parameters)
 
+    print 'writing to %s' % file_full_path
     with open(file_full_path, "wb") as fout:
         bary = bytearray(norm_params)
         bary.append(0)
