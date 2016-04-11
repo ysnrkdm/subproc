@@ -6,4 +6,5 @@ import config
 
 setup_logging(ElJemTask.queue)
 conf = config.config_by_filename(sys.argv[1])
-Worker.run([ElJemTask.queue], password=conf['redis_password'])
+server = config.redis_hostname_port_from_config(conf)
+Worker.run([ElJemTask.queue], server=server, password=conf['redis_password'])

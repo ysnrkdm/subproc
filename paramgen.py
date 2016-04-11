@@ -8,10 +8,10 @@ def conv_num(num):
         return num
 
 
-def write_data(parameters):
+def write_data(file_full_path, parameters):
     norm_params = map(conv_num, parameters)
 
-    with open("/Users/Yoshinori/Documents/OneDrive/codes/FlatReversi/subproc/data", "wb") as fout:
+    with open(file_full_path, "wb") as fout:
         bary = bytearray(norm_params)
         bary.append(0)
         fout.write(bary)
@@ -21,7 +21,7 @@ def fetch_and_paramgen():
     # load parameter
     a = simple_learn.SimpleLearn()
     params = a.read_parameters()
-    write_data(params)
+    write_data('', params)
 
 
 def main():
