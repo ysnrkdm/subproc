@@ -202,4 +202,4 @@ class SimpleLearn(LearnBasePlus):
             r_param.hset(key, 'g', g)
             r_param.hset(key, 'h', h)
         (a, b, c, d, e, f, g, h) = r_param.hmget(key, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h')
-        return int(a), int(b), int(c), int(d), int(e), int(f), int(g), int(h)
+        return 0, int(a), int(b), int(c), int(d), int(e), int(f), int(g), int(h)
