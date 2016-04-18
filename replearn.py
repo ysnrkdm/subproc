@@ -1,6 +1,5 @@
 import game_reader
 import time
-from simple_learn import SimpleLearn
 from pyres import ResQ
 from eljem_task import ElJemTask
 import config
@@ -11,12 +10,17 @@ MAX_BATCH_SIZE_PER_EPIC = 100
 
 SECONDS = 15
 
-EPIC_BATCH_SIZE = 50
+
+def get_learn(conf):
+    mod = __import__(conf['learn_from'], fromlist=[conf['learn_class']])
+    class_def = getattr(mod, conf['learn_class'])
+    obj = class_def()
+    return obj
 
 
 def learn_books(conf, from_id, to_id):
     reader = get_reader(conf)
-    learn = SimpleLearn()
+    learn = get_learn(conf)
     learn.configure(conf)
 
     will_process = range(from_id, to_id)
@@ -67,7 +71,7 @@ def get_reader(conf):
 def enqueue_job(conf, nth=1):
     for i in range(nth):
         r = ResQ(server=config.redis_hostname_port_from_config(conf), password=conf['redis_password'])
-        a = SimpleLearn()
+        a = get_learn(conf)
         a.configure(conf)
         params = a.read_parameters()
         r.enqueue(ElJemTask, (conf,params))
@@ -76,9 +80,13 @@ def enqueue_job(conf, nth=1):
 
 def main(config_filename):
     conf = config.config_by_filename(config_filename)
+    q = get_learn(conf)
+    print 'Will use %s' % q.name()
+    epic_batch_size = conf['learn_epic_batch_size']
+    print 'Batch size per epic is %d' % epic_batch_size
 
     while True:
-        learn = SimpleLearn()
+        learn = get_learn(conf)
         learn.configure(conf)
         last = learn.last_processed()
 
@@ -95,7 +103,7 @@ def main(config_filename):
 
         to_id = max(from_id, most_book_id)
 
-        if from_id + EPIC_BATCH_SIZE <= to_id:
+        if from_id + epic_batch_size <= to_id:
             learn_books(conf, from_id, to_id)
         else:
             print 'Not enough data to process: from_id[%d] and to_id[%d]' % (from_id, to_id)
@@ -103,7 +111,7 @@ def main(config_filename):
             r = ResQ(server=config.redis_hostname_port_from_config(conf), password=conf['redis_password'])
             n_inqueue = r.info()['queues']
             n_pending = r.info()['pending']
-            n_enqueued = EPIC_BATCH_SIZE - (to_id - from_id) - n_inqueue - n_pending
+            n_enqueued = epic_batch_size - (to_id - from_id) - n_inqueue - n_pending
             print 'buffered %d matches, and %d in queue, %d pending jobs, will add %d jobs' % ((to_id - 1 - from_id + 1), n_inqueue, n_pending, n_enqueued)
             enqueue_job(conf, n_enqueued)
 

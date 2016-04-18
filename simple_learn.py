@@ -78,7 +78,7 @@ class SimpleLearn(LearnBasePlus):
         mse, var, new_param = self.__learn_batch(last_book_id)
 
         slack.post_message(
-            'Learn complete' + '\n' +
+            ('Learn complete [%s]' % self.name()) + '\n' +
             ('mse: %s' % str(mse)) + '\n' +
             ('var: %s' % str(var)) + '\n' +
             'new param: %s' % str(map(lambda x: '%.3f' % x, new_param)))

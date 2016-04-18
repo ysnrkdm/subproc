@@ -104,7 +104,7 @@ class LearnBasePlus(LearnBase):
         r_param.hmset(key_for_update_stats, payload)
 
         slack.post_message(
-                ('Done matches, from %d to %d' % (book_id_from, book_id_to)) + '\n' +
+                ('Done matches [%s], from %d to %d' % (self.name(), book_id_from, book_id_to)) + '\n' +
                 ('win rate: %s/%s = %.4f/%.4f' %
                  (black_name, white_name, black_win_rate * 100.0, white_win_rate * 100.0)) + '\n' +
                 ('disc diff: min/avg/max = %d/%.2f/%d' % (min_disc_diff, avg_disc_diff, max_disc_diff)) + '\n' +
@@ -130,7 +130,7 @@ class LearnBasePlus(LearnBase):
             ranking_list.append({'empty': 'empty'})
             ranking_list.append({'empty': 'empty'})
         slack.post_message(
-                'Ranking: ' + '\n' +
+                ('Ranking of %s: ' % self.name()) + '\n' +
                 ('1st: %s' % str(ranking_list[0])) + '\n' +
                 ('2nd: %s' % str(ranking_list[1])) + '\n' +
                 ('3rd: %s' % str(ranking_list[2])))
