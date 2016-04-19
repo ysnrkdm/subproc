@@ -1,6 +1,5 @@
 import board
 import random
-import math
 import slack
 from learn_base import LearnBasePlus
 import numpy as np
@@ -28,7 +27,7 @@ class SimpleLearn(LearnBasePlus):
     def name(self):
         return 'simplelearn'
 
-    def update_state_map(self, a_book, side, turn_left, value):
+    def __update_state_map(self, a_book, side, turn_left, value):
         r_param = self._redis_param()
         key = self.key_for_param(['param', 'state', self.__hash_from_book(a_book, side)])
         if not r_param.exists(key):
@@ -109,7 +108,7 @@ class SimpleLearn(LearnBasePlus):
         for turn in book:
             for (side, value) in [('O', value_for_black), ('X', value_for_white)]:
                 # update state map
-                _, _ = self.update_state_map(turn, side, last_turn - int(turn['turn']), value)
+                _, _ = self.__update_state_map(turn, side, last_turn - int(turn['turn']), value)
         return book_id
 
     def __fit_parameters(self):
@@ -135,18 +134,6 @@ class SimpleLearn(LearnBasePlus):
 
         return mse, var, tuple([i * 20 for i in lr.coef_])
 
-    def __norm(self, a, b):
-        ret = 0
-        for i in range(len(a)):
-            ret += (a[i] - b[i]) ** 2
-        return math.sqrt(ret)
-
-    def __eval_vector(self, parameters, features):
-        ret = 0
-        for i in range(len(parameters)):
-            ret += parameters[i] * features[i]
-        return ret
-
     def __counts(self, a_book, side):
         a = mask_count(a_book, side, 0x8100000000000081)
         b = mask_count(a_book, side, 0x4281000000008142)
@@ -157,11 +144,6 @@ class SimpleLearn(LearnBasePlus):
         g = mask_count(a_book, side, 0x0000240000240000)
         h = mask_count(a_book, side, 0x0000183C3C180000)
         return a, b, c, d, e, f, g, h
-
-    def __eval(self, a_book, side, parameters):
-        (a, b, c, d, e, f, g, h) = self.__counts(a_book, side)
-        (ca, cb, cc, cd, ce, cf, cg, ch) = parameters
-        return a * ca + b * cb + c * cc + d * cd + e * ce + f * cf + g * cg + h * ch
 
     def last_processed(self):
         r_param = self._redis_param()
