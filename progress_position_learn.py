@@ -198,10 +198,10 @@ class ProgressPositionLearn(LearnBasePlus):
         key = self.key_for_param(['param'])
         if not r_param.exists(key):
             self.store_parameters([
-                99, -1, -1, -1, -1, 3, 8, 20,
-                99, 2,  -5,  7,  6,  4,  5, 5,
-                99, 2,  -5,  -7,  -6,  4,  5, 5,
-                100, 50, 30, 30, 30, 30, 30, 30
+                [99, -1, -1, -1, -1, 3, 8, 20],
+                [99, 2,  -5,  7,  6,  4,  5, 5],
+                [99, 2,  -5,  -7,  -6,  4,  5, 5],
+                [100, 50, 30, 30, 30, 30, 30, 30]
             ])
         start = ord('A')
         ret = [1]
