@@ -57,6 +57,9 @@ class Board:
     def set(self, piece, x, y):
         self.board[y][x] = piece
 
+    def get(self, x, y):
+        return self.board[y][x]
+
     def str_from_turn(self, color):
         if color == Black:
             return 'Black'
@@ -64,6 +67,26 @@ class Board:
             return 'White'
         else:
             return 'None'
+
+    def mask_count(self, color, mask):
+        # mask to arrays
+        ret = 0
+        for i in range(0, 8):
+            for j in range(0, 8):
+                if (mask >> j+i*8) & 1 > 0 and self.get(j, i) == color:
+                        ret += 1
+        return ret
+
+    @classmethod
+    def show_mask(self, mask):
+        q = Board()
+        for i in range(0, 8):
+            for j in range(0, 8):
+                if (mask >> j+i*8) & 1 > 0:
+                    q.set(Black, j,i)
+                else:
+                    q.set(Empty, j,i)
+        print q
 
     def __str__(self):
         current_turn = self.str_from_turn(self.turn)
