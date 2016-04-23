@@ -78,7 +78,7 @@ class Board:
         return ret
 
     @classmethod
-    def show_mask(self, mask):
+    def show_mask(cls, mask):
         q = Board()
         for i in range(0, 8):
             for j in range(0, 8):
@@ -210,48 +210,41 @@ class Board:
         i = 1
         for row in self.board:
             for cell in row:
-                ret += ''
-                if cell == White:
-                    ret += 'X'
-                elif cell == Black:
-                    ret += 'O'
-                else:
-                    ret += '-'
+                ret += self.string_from_turn(cell)
                 ret += ''
             ret += ''
             i += 1
         return ret
 
     def serialize_turn(self):
-        ret = ''
-        if self.turn == Black:
-            ret += 'O'
-        elif self.turn == White:
-            ret += 'X'
-        else:
-            ret += ''
-        return ret
+        return self.string_from_turn(self.turn)
 
-    def deserialize(self, board_str, turn_str, turn):
+    def string_from_turn(self, turn):
+        if turn == Black:
+            return 'O'
+        elif turn == White:
+            return 'X'
+        else:
+            return '-'
+
+    def turn_from_string(self, turn_string):
+        if turn_string == 'O':
+            return Black
+        elif turn_string == 'X':
+            return White
+        else:
+            return Empty
+
+    def deserialize(self, board_str, turn_str, nturn):
         i = 0
         for s in board_str:
-            if s == 'X':
-                cell = White
-            elif s == 'O':
-                cell = Black
-            else:
-                cell = Empty
+            cell = self.turn_from_string(s)
             self.set(cell, i % 8, i / 8)
             i += 1
 
-        if turn_str == 'X':
-            self.turn = White
-        elif turn_str == 'O':
-            self.turn = Black
-        else:
-            self.turn = Empty
+        self.turn = self.turn_from_string(turn_str)
 
-        self.nturn = turn
+        self.nturn = nturn
 
 
 def is_within_board(x, y):

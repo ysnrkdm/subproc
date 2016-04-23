@@ -1,6 +1,5 @@
 import board
 import random
-import math
 import slack
 from learn_base import LearnBasePlus
 import numpy as np
@@ -8,23 +7,6 @@ from sklearn.utils import resample
 from sklearn import linear_model
 from math import sqrt
 from itertools import chain
-
-
-def mask_count(book, side, mask):
-    ret = 0
-    for i in range(0, 64):
-        if (mask >> i) & 1 > 0:
-            if book['book'][63 - i] == side:
-                ret += 1
-    return ret
-
-
-def count(book):
-    ret = 0
-    for i in range(0, 64):
-        if book['book'][63 - i] != '-':
-                ret += 1
-    return ret
 
 
 class ProgressPositionLearn(LearnBasePlus):
@@ -38,8 +20,32 @@ class ProgressPositionLearn(LearnBasePlus):
         return 'progresspositionlearn'
 
     # State related functions
+    def __hash_from_book(self, a_book, side):
+        count_list = self.__counts(a_book, side)
+        return ':'.join(map(lambda x: str(x), count_list))
 
-    def update_state_map(self, a_book, side, turn_left, value):
+    def __state_from_hash(self, state):
+        return tuple(map(lambda x: int(x), state.split(":")[4:]))
+
+    def __board_from_a_book(self, a_book):
+        a_board = board.Board()
+        a_board.deserialize(a_book['book'], a_book['whosturn'], a_book['turn'])
+        return a_board
+
+    def __update_state_by_book(self, book_id, book):
+        print book[0]
+        last_turn = int(book[0]['turn'])
+        last_board = self.__board_from_a_book(book[0])
+        value_for_black = last_board.n_black() - last_board.n_white()
+        value_for_white = last_board.n_white() - last_board.n_black()
+        # update values
+        for a_book in book:
+            for (side, value) in [('O', value_for_black), ('X', value_for_white)]:
+                # update state map
+                _, _ = self.__update_state_map(a_book, side, last_turn - int(a_book['turn']), value)
+        return book_id
+
+    def __update_state_map(self, a_book, side, turn_left, value):
         r_param = self._redis_param()
         key = self.key_for_param(['param', 'state', self.__hash_from_book(a_book, side)])
         if not r_param.exists(key):
@@ -53,42 +59,18 @@ class ProgressPositionLearn(LearnBasePlus):
             r_param.set(key, current_value * (1-self.a) + new_value * self.a)
         return current_value, r_param.get(key)
 
-    def __hash_from_book(self, a_book, side):
-        (p, a, b, c, d, e, f, g, h) = self.__counts(a_book, side)
-        return ':'.join([str(p), str(a), str(b), str(c), str(d), str(e), str(f), str(g), str(h)])
-
-    def __state_from_hash(self, state):
-        a = state.split(':')
-        return int(a[4]), int(a[5]), int(a[6]), int(a[7]), int(a[8]), int(a[9]), int(a[10]), int(a[11]), int(a[12])
-
-    def __update_state_by_book(self, book_id, book):
-        print book[0]
-        last_turn = int(book[0]['turn'])
-        last_board = board.Board()
-        last_board.deserialize(book[0]['book'], book[0]['whosturn'], book[0]['turn'])
-        value_for_black = last_board.n_black() - last_board.n_white()
-        value_for_white = last_board.n_white() - last_board.n_black()
-        # update values
-        for turn in book:
-            for (side, value) in [('O', value_for_black), ('X', value_for_white)]:
-                # update state map
-                _, _ = self.update_state_map(turn, side, last_turn - int(turn['turn']), value)
-        return book_id
-
-    def __progress(self, a_book):
-        cnt = count(a_book)
-        return cnt
-
     def __counts(self, a_book, side):
-        a = mask_count(a_book, side, 0x8100000000000081)
-        b = mask_count(a_book, side, 0x4281000000008142)
-        c = mask_count(a_book, side, 0x0042000000004200)
-        d = mask_count(a_book, side, 0x2400810000810024)
-        e = mask_count(a_book, side, 0x1800008181000018)
-        f = mask_count(a_book, side, 0x003C424242423C00)
-        g = mask_count(a_book, side, 0x0000240000240000)
-        h = mask_count(a_book, side, 0x0000183C3C180000)
-        return self.__progress(a_book), a, b, c, d, e, f, g, h
+        a_board = self.__board_from_a_book(a_book)
+        turn = a_board.turn_from_string(side)
+        a = a_board.mask_count(turn, 0x8100000000000081)
+        b = a_board.mask_count(turn, 0x4281000000008142)
+        c = a_board.mask_count(turn, 0x0042000000004200)
+        d = a_board.mask_count(turn, 0x2400810000810024)
+        e = a_board.mask_count(turn, 0x1800008181000018)
+        f = a_board.mask_count(turn, 0x003C424242423C00)
+        g = a_board.mask_count(turn, 0x0000240000240000)
+        h = a_board.mask_count(turn, 0x0000183C3C180000)
+        return (64 - a_board.n_empty()), a, b, c, d, e, f, g, h
 
     # Learning related functions
 
