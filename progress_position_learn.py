@@ -87,7 +87,7 @@ class ProgressPositionLearn(LearnBasePlus):
             progress = state[0]
             value = float(r_param.get(key_rand))
             if p_min <= progress <= p_max:
-                ret.add((state, value))
+                ret.add((state[1:], value))
 
         y = []
         x = []
@@ -95,7 +95,7 @@ class ProgressPositionLearn(LearnBasePlus):
             y.append(value)
             x.append(list(state))
 
-        return x,y
+        return x, y
 
     def learn_and_update_batch(self, books):
         last_book_id = -1
@@ -145,6 +145,9 @@ class ProgressPositionLearn(LearnBasePlus):
             mses.append(mse)
             vars.append(var)
             params.append(tuple([i * 20 for i in lr.coef_]))
+
+        print 'params learned:'
+        print params
 
         return mses, vars, params
 
