@@ -190,8 +190,11 @@ class ProgressPositionMovesLearn(LearnBasePlus):
                 [1, 100, 50, 30, 30, 30, 30, 30, 30]
             ])
         start = ord('A')
-        ret = [1]
+        ret = [2]
         for i in range(9*4):
             ret.append(int(r_param.hget(key, chr(start + i))))
+
+        print 'read parameter %s' % str(tuple(ret))
+        print '%d elements' % len(ret)
 
         return tuple(ret)
