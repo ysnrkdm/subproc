@@ -99,7 +99,7 @@ class LearnBasePlus(LearnBase):
             'max_disc_diff': max_disc_diff,
             'avg_disc_diff': avg_disc_diff,
             'params_used': params_used,
-            'diffs': disc_diff
+            'diffs': sorted(disc_diff)
         }
         r_param.hmset(key_for_update_stats, payload)
 
