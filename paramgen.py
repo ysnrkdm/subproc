@@ -1,6 +1,5 @@
 import config
 import sys
-import replearn
 
 
 def conv_num(num):
@@ -20,9 +19,16 @@ def write_data(file_full_path, parameters):
         fout.write(bary)
 
 
+def get_learn(conf):
+    mod = __import__(conf['learn_from'], fromlist=[conf['learn_class']])
+    class_def = getattr(mod, conf['learn_class'])
+    obj = class_def()
+    return obj
+
+
 def fetch_and_paramgen(conf):
     # load parameter
-    learn = replearn.get_learn(conf)
+    learn = get_learn(conf)
     print 'type is %s' % type(learn)
     learn.configure(conf)
     params = learn.read_parameters()
