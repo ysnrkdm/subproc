@@ -1,1 +1,13 @@
 *.pyc
+.Python
+.idea
+bin
+lib
+man
+include
+data
+edax
+*.sh
+*.cfg
+*.iml
+pip-selfcheck.json
