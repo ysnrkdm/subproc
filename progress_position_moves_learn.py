@@ -145,7 +145,8 @@ class ProgressPositionMovesLearn(LearnBasePlus):
             var = lr.score(test_x, test_y)
             mses.append(mse)
             vars.append(var)
-            params.append(tuple([i * 20 for i in lr.coef_]))
+            coef = 127/max(map(lambda x: abs(x), lr.coef_))
+            params.append(tuple([i*coef for i in lr.coef_]))
 
         print 'params learned:'
         print params
@@ -179,19 +180,25 @@ class ProgressPositionMovesLearn(LearnBasePlus):
         key_last_processed = self.key_for_param(['last_processed'])
         r_param.set(key_last_processed, id_processed)
 
+    def __param_header(self):
+        return 2
+
+    def __param_default(self):
+        return [
+            [100, 99, -1, -1, -1, -1, 3, 8, 20],
+            [75, 99, 2,  -5,  7,  6,  4,  5, 5],
+            [25, 99, 2,  -5,  -7,  -6,  4,  5, 5],
+            [1, 100, 50, 30, 30, 30, 30, 30, 30]
+        ]
+
     def read_parameters(self):
         r_param = self._redis_param()
         key = self.key_for_param(['param'])
         if not r_param.exists(key):
-            self.store_parameters([
-                [100, 99, -1, -1, -1, -1, 3, 8, 20],
-                [75, 99, 2,  -5,  7,  6,  4,  5, 5],
-                [25, 99, 2,  -5,  -7,  -6,  4,  5, 5],
-                [1, 100, 50, 30, 30, 30, 30, 30, 30]
-            ])
+            self.store_parameters(self.__param_default())
         start = ord('A')
-        ret = [2]
-        for i in range(9*4):
+        ret = [self.__param_header()]
+        for i in range(len(list(chain.from_iterable(self.__param_default())))):
             ret.append(int(r_param.hget(key, chr(start + i))))
 
         print 'read parameter %s' % str(tuple(ret))
