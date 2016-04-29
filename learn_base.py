@@ -63,22 +63,26 @@ class LearnBasePlus(LearnBase):
         params = set()
 
         for book_id, book, meta in books:
-            last_book = book[0]
-            last_board = board.Board()
-            last_board.deserialize(last_book['book'], last_book['whosturn'], last_book['turn'])
-            black_discs = last_board.n_black()
-            white_discs = last_board.n_white()
-            disc_diff.append(black_discs - white_discs)
-            if black_discs > white_discs:
-                black_wins += 1
-            elif white_discs > black_wins:
-                white_wins += 1
-            else:
-                pass
-            book_ids.append(book_id)
-            black_name = meta['proc_a']
-            white_name = meta['prob_b']
-            params.add(meta['hamletparam'])
+            try:
+                last_book = book[0]
+                last_board = board.Board()
+                last_board.deserialize(last_book['book'], last_book['whosturn'], last_book['turn'])
+                black_discs = last_board.n_black()
+                white_discs = last_board.n_white()
+                disc_diff.append(black_discs - white_discs)
+                if black_discs > white_discs:
+                    black_wins += 1
+                elif white_discs > black_wins:
+                    white_wins += 1
+                else:
+                    pass
+                book_ids.append(book_id)
+                black_name = meta['proc_a']
+                white_name = meta['prob_b']
+                params.add(meta['hamletparam'])
+            except:
+                import traceback
+                traceback.print_exc()
 
         black_win_rate = float(black_wins) / float(len(books))
         white_win_rate = float(white_wins) / float(len(books))
