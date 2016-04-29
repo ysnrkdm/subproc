@@ -82,6 +82,7 @@ class LearnBasePlus(LearnBase):
                 params.add(meta['hamletparam'])
             except:
                 import traceback
+                print 'Exception occured while processing %d th book' % book_id
                 traceback.print_exc()
 
         black_win_rate = float(black_wins) / float(len(books))
