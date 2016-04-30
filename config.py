@@ -19,7 +19,13 @@ def config_by_filename(filename):
         #[learn]
         'learn_from': parser.get('learn', 'from'),
         'learn_class': parser.get('learn', 'class'),
-        'learn_epic_batch_size': parser.getint('learn', 'epic_batch_size')
+        'learn_epic_batch_size': parser.getint('learn', 'epic_batch_size'),
+        #[game_reader]
+        'game_reader_from': parser.get('game_reader', 'from'),
+        'game_reader_class': parser.get('game_reader', 'class'),
+        #[game_recorder]
+        'game_recorder_from': parser.get('game_recorder', 'from'),
+        'game_recorder_class': parser.get('game_recorder', 'class'),
     }
     return ret
 

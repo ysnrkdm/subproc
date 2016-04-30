@@ -1,4 +1,3 @@
-import game_reader
 import time
 from pyres import ResQ
 from eljem_task import ElJemTask
@@ -14,6 +13,13 @@ SECONDS = 15
 def get_learn(conf):
     mod = __import__(conf['learn_from'], fromlist=[conf['learn_class']])
     class_def = getattr(mod, conf['learn_class'])
+    obj = class_def()
+    return obj
+
+
+def get_game_reader(conf):
+    mod = __import__(conf['game_reader_from'], fromlist=[conf['game_reader_class']])
+    class_def = getattr(mod, conf['game_reader_class'])
     obj = class_def()
     return obj
 
@@ -57,7 +63,7 @@ def get_most_book_id(conf, from_id):
 
 
 def get_reader(conf):
-    r = game_reader.RedisReader()
+    r = get_game_reader(conf)
     r.configure('', '', {
         'host': conf['redis_hostname'],
         'port': conf['redis_port'],
