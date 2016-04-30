@@ -1,6 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 import redis
+import boto3
+from boto3.dynamodb.conditions import Key
+import decimal
 
 
 class GameRecorder(object):
@@ -78,14 +81,14 @@ class RedisRecorder(GameRecorder):
         }
         self.lines.append(obj)
 
-    def get_id(self):
+    def __get_id(self):
         if not self.r.exists('count'):
             self.r.set('count', 0)
         return self.r.incr('count')
 
     def store(self):
         # TODO: make below as ACID
-        book_id = self.get_id()
+        book_id = self.__get_id()
         entry_key = ':'.join([self.dbkeyprefix, str(book_id)])
         n_turn = 0
         for a_book in self.lines:
@@ -97,7 +100,84 @@ class RedisRecorder(GameRecorder):
         key_meta = ':'.join([entry_key, 'meta'])
         self.r.hmset(key_meta, self.meta)
 
-    def add_meta(self, dict):
-        self.meta.update(dict)
+    def add_meta(self, meta_dict):
+        self.meta.update(meta_dict)
 
 GameRecorder.register(RedisRecorder)
+
+
+class DynamoDBRecorder(GameRecorder):
+
+    def __init__(self):
+        self.client = None
+        self.resource = None
+        self.table_name = 'DEFAULT_TABLE_NAME'
+        self.lines = []
+        self.meta = {'meta': 'meta'}
+        self.dbkeyprefix = 'DEFAULT'
+        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    def configure(self, title, meta, config_dict):
+        self.client = boto3.client('dynamodb', endpoint_url=config_dict['dynamodb_endpoint_url'],
+                                   region_name=config_dict['dynamodb_region_name'],
+                                   aws_access_key_id=config_dict['dynamodb_aws_access_key_id'],
+                                   aws_secret_access_key=config_dict['dynamodb_aws_secret_access_key'])
+        self.resource = boto3.resource('dynamodb', endpoint_url=config_dict['dynamodb_endpoint_url'],
+                                       region_name=config_dict['dynamodb_region_name'],
+                                       aws_access_key_id=config_dict['dynamodb_aws_access_key_id'],
+                                       aws_secret_access_key=config_dict['dynamodb_aws_secret_access_key'])
+        self.table_name = config_dict['dynamodb_book_table_name']
+
+    def add(self, game_board):
+        obj = {
+            'book': game_board.serialize_board(),
+            'whosturn': game_board.serialize_turn(),
+            'turn': game_board.nturn,
+            'end': game_board.is_game_over(),
+            'timestamp': self.timestamp
+        }
+        self.lines.append(obj)
+
+    def __get_table(self):
+        if not unicode(self.table_name) in self.client.list_tables()['TableNames']:
+            table = self.resource.create_table(TableName=self.table_name,
+                                                    KeySchema=[
+                                                        {'AttributeName': 'book_id', 'KeyType': 'HASH'},
+                                                        {'AttributeName': 'board_id', 'KeyType': 'RANGE'}],
+                                                    AttributeDefinitions=[
+                                                        {'AttributeName': 'book_id', 'AttributeType': 'N'},
+                                                        {'AttributeName': 'board_id', 'AttributeType': 'N'}],
+                                                    ProvisionedThroughput={
+                                                        'ReadCapacityUnits': 10,
+                                                        'WriteCapacityUnits': 10})
+        else:
+            table = self.resource.Table(self.table_name)
+        return table
+
+    def __get_id(self):
+        table = self.__get_table()
+        res = table.query(KeyConditionExpression=Key('book_id').eq(0))
+        if res['Count'] == 0:
+            table.put_item(Item={'book_id': 0, 'board_id': 0, 'info': {'latest_book_id': 0}})
+        # atomic increment
+        res = table.update_item(Key={'book_id': 0, 'board_id': 0},
+                                UpdateExpression="set info.latest_book_id = info.latest_book_id + :val",
+                                ExpressionAttributeValues={':val': decimal.Decimal(1)},
+                                ReturnValues="UPDATED_NEW")
+        return int(res['Attributes']['info']['latest_book_id'])
+
+    def store(self):
+        table = self.__get_table()
+        book_id = self.__get_id()
+
+        n_turn = 0
+        for a_book in self.lines:
+            table.put_item(Item={'book_id': book_id, 'board_id': n_turn, 'info': a_book})
+            n_turn += 1
+        # set meta to board_id -1
+        table.put_item(Item={'book_id': book_id, 'board_id': -1, 'info': self.meta})
+
+    def add_meta(self, meta_dict):
+        self.meta.update(meta_dict)
+
+GameRecorder.register(DynamoDBRecorder)
