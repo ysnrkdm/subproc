@@ -22,7 +22,7 @@ class GameRecorder(object):
         pass
 
     @abstractmethod
-    def add_meta(self, dict):
+    def add_meta(self, meta_dict):
         pass
 
 
@@ -52,8 +52,8 @@ class FlatFileRecorder(GameRecorder):
         f.close()
         print 'File closed\n'
 
-    def add_meta(self, dict):
-        self.meta.update(dict)
+    def add_meta(self, meta_dict):
+        self.meta.update(meta_dict)
 
 GameRecorder.register(FlatFileRecorder)
 
@@ -141,15 +141,15 @@ class DynamoDBRecorder(GameRecorder):
     def __get_table(self):
         if not unicode(self.table_name) in self.client.list_tables()['TableNames']:
             table = self.resource.create_table(TableName=self.table_name,
-                                                    KeySchema=[
-                                                        {'AttributeName': 'book_id', 'KeyType': 'HASH'},
-                                                        {'AttributeName': 'board_id', 'KeyType': 'RANGE'}],
-                                                    AttributeDefinitions=[
-                                                        {'AttributeName': 'book_id', 'AttributeType': 'N'},
-                                                        {'AttributeName': 'board_id', 'AttributeType': 'N'}],
-                                                    ProvisionedThroughput={
-                                                        'ReadCapacityUnits': 10,
-                                                        'WriteCapacityUnits': 10})
+                                               KeySchema=[
+                                                   {'AttributeName': 'book_id', 'KeyType': 'HASH'},
+                                                   {'AttributeName': 'board_id', 'KeyType': 'RANGE'}],
+                                               AttributeDefinitions=[
+                                                   {'AttributeName': 'book_id', 'AttributeType': 'N'},
+                                                   {'AttributeName': 'board_id', 'AttributeType': 'N'}],
+                                               ProvisionedThroughput={
+                                                   'ReadCapacityUnits': 10,
+                                                   'WriteCapacityUnits': 10})
         else:
             table = self.resource.Table(self.table_name)
         return table
