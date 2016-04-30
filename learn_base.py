@@ -50,7 +50,8 @@ class LearnBasePlus(LearnBase):
         self.conf = conf_dict
 
     def _redis_param(self):
-        r_param = redis.Redis(host=self.conf['redis_hostname'], port=self.conf['redis_port'], db=self.conf['redis_db_param'], password=self.conf['redis_password'])
+        r_param = redis.Redis(host=self.conf['redis_hostname'], port=self.conf['redis_port'],
+                              db=self.conf['redis_db_param'], password=self.conf['redis_password'])
         return r_param
 
     def store_batch_stats(self, books):
