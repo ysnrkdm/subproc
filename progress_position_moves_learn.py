@@ -17,7 +17,7 @@ class ProgressPositionMovesLearn(LearnBasePlus):
         self.l = 0.90            # turn decay in TD-lambda
 
     def name(self):
-        return 'progresspositionlearn'
+        return 'progresspositionmovelearn'
 
     # State related functions
     def __hash_from_book(self, a_book, side):
