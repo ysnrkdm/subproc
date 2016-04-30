@@ -64,13 +64,7 @@ def get_most_book_id(conf, from_id):
 
 def get_reader(conf):
     r = get_game_reader(conf)
-    r.configure('', '', {
-        'host': conf['redis_hostname'],
-        'port': conf['redis_port'],
-        'db': conf['redis_db_book'],
-        'password': conf['redis_password'],
-        'dbkeyprefix': 'othellobook',
-    })
+    r.configure('', '', conf)
     return r
 
 

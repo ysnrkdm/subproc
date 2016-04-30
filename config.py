@@ -11,6 +11,7 @@ def config_by_filename(filename):
         'redis_password': parser.get('redis', 'password'),
         'redis_db_book': parser.getint('redis', 'book_db'),
         'redis_db_param': parser.getint('redis', 'param_db'),
+        'redis_book_dbkeyprefix': parser.get('redis', 'book_dbkeyprefix'),
         # [proc]
         'proc_a_path': parser.get('proc', 'a_path'),
         'proc_b_path': parser.get('proc', 'b_path'),

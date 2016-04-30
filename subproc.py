@@ -19,11 +19,7 @@ def do_match(conf):
     # recorder.configure('', '', {'output_path': text_output_path})
 
     recorder = get_game_recorder(conf)
-    recorder.configure('', '', {
-        'host': conf['redis_hostname'], 'port': conf['redis_port'], 'db': conf['redis_db_book'],
-        'password': conf['redis_password'],
-        'dbkeyprefix': 'othellobook'
-    })
+    recorder.configure('', '', conf)
 
     gr = game_runner.GameRunner(proc_a_path, proc_b_path, recorder)
 

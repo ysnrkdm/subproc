@@ -65,8 +65,9 @@ class RedisRecorder(GameRecorder):
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     def configure(self, title, meta, config_dict):
-        self.r = redis.Redis(host=config_dict['host'], port=config_dict['port'], db=config_dict['db'], password=config_dict['password'])
-        self.dbkeyprefix = config_dict['dbkeyprefix']
+        self.r = redis.Redis(host=config_dict['redis_hostname'], port=config_dict['redis_port'],
+                             db=config_dict['redis_db_book'], password=config_dict['redis_password'])
+        self.dbkeyprefix = config_dict['redis_book_dbkeyprefix']
 
     def add(self, game_board):
         obj = {
