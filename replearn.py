@@ -7,6 +7,8 @@ import sys
 
 MAX_BATCH_SIZE_PER_EPIC = 100
 
+LATEST_BOOK_ID_CONTINUE_TO_FIND = 10
+
 SECONDS = 15
 
 
@@ -47,13 +49,16 @@ def learn_books(conf, from_id, to_id):
 
 
 def get_most_book_id(conf, from_id):
+    retry_coutner = LATEST_BOOK_ID_CONTINUE_TO_FIND
     reader = get_reader(conf)
     current_id = from_id
     id_exists = len(reader.load_by_id(current_id)[1]) > 0
     print 'id %d %s' % (current_id, ('found' if id_exists else 'not found'))
-    while id_exists:
+    while retry_coutner > 0:
         current_id += 1
         id_exists = len(reader.load_by_id(current_id)[1]) > 0
+        if not id_exists:
+            retry_coutner -= 1
         print 'id %d %s' % (current_id, ('found' if id_exists else 'not found'))
         if current_id - from_id > MAX_BATCH_SIZE_PER_EPIC:
             print 'more than %d found. going back to learn' % (current_id - from_id)
