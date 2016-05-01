@@ -169,6 +169,7 @@ class DynamoDBRecorder(GameRecorder):
     def store(self):
         table = self.__get_table()
         book_id = self.__get_id()
+        print 'Persisting book_id %d' % book_id
 
         n_turn = 0
         for a_book in self.lines:
@@ -176,6 +177,7 @@ class DynamoDBRecorder(GameRecorder):
             n_turn += 1
         # set meta to board_id -1
         table.put_item(Item={'book_id': book_id, 'board_id': -1, 'info': self.meta})
+        print 'Done persisting.'
 
     def add_meta(self, meta_dict):
         self.meta.update(meta_dict)
