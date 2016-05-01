@@ -26,16 +26,15 @@ def get_game_reader(conf):
     return obj
 
 
-def learn_books(conf, from_id, to_id):
+def learn_books(conf, book_ids):
     reader = get_reader(conf)
     learn = get_learn(conf)
     learn.configure(conf)
 
-    will_process = range(from_id, to_id)
-    print 'will process %s' % (str(will_process))
+    print 'will process %s' % (str(book_ids))
 
     books = []
-    for i in will_process:
+    for i in book_ids:
         meta, a_book = reader.load_by_id(i)
         if len(a_book) > 0:
             a_book_sorted = sorted(a_book, key=lambda x: int(x['turn']))
@@ -48,23 +47,28 @@ def learn_books(conf, from_id, to_id):
     enqueue_job(conf, len(books))
 
 
-def get_most_book_id(conf, from_id):
-    retry_coutner = LATEST_BOOK_ID_CONTINUE_TO_FIND
+def get_books_to_process(conf, from_id):
+    retry_counter = LATEST_BOOK_ID_CONTINUE_TO_FIND
     reader = get_reader(conf)
     current_id = from_id
+    ret = []
     id_exists = len(reader.load_by_id(current_id)[1]) > 0
     print 'id %d %s' % (current_id, ('found' if id_exists else 'not found'))
-    while retry_coutner > 0:
+    if id_exists:
+        ret.append(current_id)
+    while retry_counter > 0:
         current_id += 1
         id_exists = len(reader.load_by_id(current_id)[1]) > 0
-        if not id_exists:
-            retry_coutner -= 1
+        if id_exists:
+            ret.append(current_id)
+        else:
+            retry_counter -= 1
         print 'id %d %s' % (current_id, ('found' if id_exists else 'not found'))
         if current_id - from_id > MAX_BATCH_SIZE_PER_EPIC:
             print 'more than %d found. going back to learn' % (current_id - from_id)
             break
 
-    return current_id
+    return current_id, ret
 
 
 def get_reader(conf):
@@ -79,7 +83,7 @@ def enqueue_job(conf, nth=1):
         a = get_learn(conf)
         a.configure(conf)
         params = a.read_parameters()
-        r.enqueue(ElJemTask, (conf,params))
+        r.enqueue(ElJemTask, (conf, params))
         print r.info()
 
 
@@ -102,22 +106,23 @@ def main(config_filename):
         if from_id == 0:
             from_id = 1
 
-        most_book_id = get_most_book_id(conf, from_id)
+        most_book_id, book_ids = get_books_to_process(conf, from_id)
 
-        print 'most book size is %d' % most_book_id
+        print 'greatest book id found is %d' % (most_book_id - 1)
 
         to_id = max(from_id, most_book_id)
 
-        if from_id + epic_batch_size <= to_id:
-            learn_books(conf, from_id, to_id)
+        if epic_batch_size <= len(book_ids):
+            learn_books(conf, book_ids)
         else:
             print 'Not enough data to process: from_id[%d] and to_id[%d]' % (from_id, to_id)
             # Re-enqueue
             r = ResQ(server=config.redis_hostname_port_from_config(conf), password=conf['redis_password'])
             n_inqueue = r.info()['queues']
             n_pending = r.info()['pending']
-            n_enqueued = epic_batch_size - (to_id - from_id) - n_inqueue - n_pending
-            print 'buffered %d matches, and %d in queue, %d pending jobs, will add %d jobs' % ((to_id - 1 - from_id + 1), n_inqueue, n_pending, n_enqueued)
+            n_enqueued = epic_batch_size - len(book_ids) - n_inqueue - n_pending
+            print 'buffered %d matches, and %d in queue, %d pending jobs, will add %d jobs' %\
+                  (len(book_ids), n_inqueue, n_pending, n_enqueued)
             enqueue_job(conf, n_enqueued)
 
         time.sleep(SECONDS)
