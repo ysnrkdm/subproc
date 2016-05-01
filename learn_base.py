@@ -114,7 +114,7 @@ class LearnBasePlus(LearnBase):
                 ('win rate: %s/%s = %.4f/%.4f' %
                  (black_name, white_name, black_win_rate * 100.0, white_win_rate * 100.0)) + '\n' +
                 ('disc diff: min/avg/max = %d/%.2f/%d' % (min_disc_diff, avg_disc_diff, max_disc_diff)) + '\n' +
-                ('disc diffs: %s' % str(disc_diff)) + '\n' +
+                ('disc diffs: %s' % str(sorted(disc_diff))) + '\n' +
                 ('params used: %s' % params_used))
 
         self.__show_stats()
