@@ -39,7 +39,8 @@ def learn_books(conf, book_ids):
         if len(a_book) > 0:
             a_book_sorted = sorted(a_book, key=lambda x: int(x['turn']))
             a_book_reversed = list(reversed(a_book_sorted))
-            books.append((i, a_book_reversed, meta))
+            if a_book_reversed[0]['end']:
+                books.append((i, a_book_reversed, meta))
 
     learn.store_batch_stats(books)
     learn.learn_and_update_batch(books)
