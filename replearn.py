@@ -66,7 +66,7 @@ def get_books_to_process(conf, from_id):
             retry_counter -= 1
         print 'id %d %s' % (current_id, ('found' if id_exists else 'not found'))
         if current_id - from_id > MAX_BATCH_SIZE_PER_EPIC:
-            print 'more than %d found. going back to learn' % (current_id - from_id)
+            print 'more than %d found. start learning the batch' % (current_id - from_id)
             break
 
     return current_id, ret
@@ -109,7 +109,7 @@ def main(config_filename):
 
         most_book_id, book_ids = get_books_to_process(conf, from_id)
 
-        print 'greatest book id found is %d' % (most_book_id - 1)
+        print 'greatest book id found is %d' % most_book_id
 
         to_id = max(from_id, most_book_id)
 
