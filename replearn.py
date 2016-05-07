@@ -11,6 +11,8 @@ LATEST_BOOK_ID_CONTINUE_TO_FIND = 10
 
 SECONDS = 15
 
+ENQUEUE_BUFFER_SECS = 5
+
 
 def get_learn(conf):
     mod = __import__(conf['learn_from'], fromlist=[conf['learn_class']])
@@ -86,6 +88,7 @@ def enqueue_job(conf, nth=1):
         params = a.read_parameters()
         r.enqueue(ElJemTask, (conf, params))
         print r.info()
+        time.sleep(ENQUEUE_BUFFER_SECS)
 
 
 def main(config_filename):
