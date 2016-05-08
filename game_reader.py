@@ -101,6 +101,7 @@ class DynamoDBReader(GameReader):
 
     def __get_table(self):
         if not unicode(self.table_name) in self.client.list_tables()['TableNames']:
+            print 'Book table doesn\'t exist. creating...'
             self.resource.create_table(TableName=self.table_name,
                                        KeySchema=[
                                            {'AttributeName': 'book_id', 'KeyType': 'HASH'},
