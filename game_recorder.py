@@ -10,6 +10,18 @@ class GameRecorder(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
+    def __enter__(self):
+        pass
+
+    @abstractmethod
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    @abstractmethod
+    def graceful_exit(self):
+        pass
+
+    @abstractmethod
     def configure(self, title, meta, config_dict):
         pass
 
@@ -34,6 +46,15 @@ class FlatFileRecorder(GameRecorder):
         self.title = ''
         self.meta = {}
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return False
+
+    def graceful_exit(self):
+        pass
 
     def configure(self, title, meta, config_dict):
         self.output_path = config_dict['output_path']
@@ -66,6 +87,15 @@ class RedisRecorder(GameRecorder):
         self.meta = {'meta': 'meta'}
         self.dbkeyprefix = 'DEFAULT'
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return False
+
+    def graceful_exit(self):
+        pass
 
     def configure(self, title, meta, config_dict):
         self.r = redis.Redis(host=config_dict['redis_hostname'], port=config_dict['redis_port'],
@@ -116,6 +146,40 @@ class DynamoDBRecorder(GameRecorder):
         self.meta = {'meta': 'meta'}
         self.dbkeyprefix = 'DEFAULT'
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.needs_graceful_exit = False
+
+    def __enter__(self):
+        print 'incrementing queue number'
+        table = self.__get_table()
+        self.__init_meta_data()
+        # atomic increment
+        table.update_item(Key={'book_id': 0, 'board_id': 0},
+                          UpdateExpression="set info.working_processes = info.working_processes + :val",
+                          ExpressionAttributeValues={':val': decimal.Decimal(1)},
+                          ReturnValues="UPDATED_NEW")
+        self.needs_graceful_exit = True
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.graceful_exit()
+        return False
+
+    def graceful_exit(self):
+        if self.needs_graceful_exit:
+            table = self.__get_table()
+            self.__init_meta_data()
+            # atomic increment
+            table.update_item(Key={'book_id': 0, 'board_id': 0},
+                              UpdateExpression="set info.working_processes = info.working_processes - :val",
+                              ExpressionAttributeValues={':val': decimal.Decimal(1)},
+                              ReturnValues="UPDATED_NEW")
+            print 'decrementing queue number'
+
+    def __init_meta_data(self):
+        table = self.__get_table()
+        res = table.query(KeyConditionExpression=Key('book_id').eq(0))
+        if res['Count'] == 0:
+            table.put_item(Item={'book_id': 0, 'board_id': 0, 'info': {'working_processes': 0, 'latest_book_id': 0}})
 
     def configure(self, title, meta, config_dict):
         self.client = boto3.client('dynamodb', endpoint_url=config_dict['dynamodb_endpoint_url'],
@@ -156,9 +220,7 @@ class DynamoDBRecorder(GameRecorder):
 
     def __get_id(self):
         table = self.__get_table()
-        res = table.query(KeyConditionExpression=Key('book_id').eq(0))
-        if res['Count'] == 0:
-            table.put_item(Item={'book_id': 0, 'board_id': 0, 'info': {'latest_book_id': 0}})
+        self.__init_meta_data()
         # atomic increment
         res = table.update_item(Key={'book_id': 0, 'board_id': 0},
                                 UpdateExpression="set info.latest_book_id = info.latest_book_id + :val",

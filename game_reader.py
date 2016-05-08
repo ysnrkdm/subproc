@@ -7,6 +7,7 @@ import time
 
 SECONDS_UNTIL_DYNAMODB_READY = 10
 
+
 class GameReader(object):
     __metaclass__ = ABCMeta
 
@@ -16,6 +17,10 @@ class GameReader(object):
 
     @abstractmethod
     def load_by_id(self, book_id):
+        pass
+
+    @abstractmethod
+    def num_working_processes(self):
         pass
 
 
@@ -79,6 +84,9 @@ class RedisReader(GameReader):
             ret[str(book_id)] = list_book
         return ret
 
+    def num_working_processes(self):
+        return 0
+
 GameReader.register(RedisReader)
 
 
@@ -141,3 +149,9 @@ class DynamoDBReader(GameReader):
                 ret.append(obj)
         return meta, ret
 
+    def num_working_processes(self):
+        table = self.__get_table()
+        res = table.query(KeyConditionExpression=Key('book_id').eq(0))
+        if len(res['Items']) == 0:
+            return 0
+        return res['Items'][0]['info']['working_processes']
