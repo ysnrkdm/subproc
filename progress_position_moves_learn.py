@@ -82,13 +82,16 @@ class ProgressPositionMovesLearn(LearnBasePlus):
         states = r_param.keys(key)
         len(states)
         ret = set()
-        for i in range(num):
-            key_rand = random.choice(states)
-            state = self.__state_from_hash(key_rand)
-            progress = state[0]
-            value = float(r_param.get(key_rand))
-            if p_min <= progress <= p_max:
-                ret.add((state[1:], value))
+        for num_try in range(5):
+            for i in range(num):
+                key_rand = random.choice(states)
+                state = self.__state_from_hash(key_rand)
+                progress = state[0]
+                value = float(r_param.get(key_rand))
+                if p_min <= progress <= p_max:
+                    ret.add((state[1:], value))
+            if len(ret) >= num:
+                break
 
         y = []
         x = []
@@ -104,27 +107,29 @@ class ProgressPositionMovesLearn(LearnBasePlus):
             last_book_id = self.__update_state_by_book(book_id, book)
 
         # learn batch
-        mse, var, new_param = self.__learn_batch(last_book_id)
+        mse, var, new_param, nsamples = self.__learn_batch(last_book_id)
 
         slack.post_message(
             ('Learn complete[%s]' % self.name()) + '\n' +
             ('mse: %s' % str(mse)) + '\n' +
             ('var: %s' % str(var)) + '\n' +
+            ('used samples: %s' % str(nsamples)) + '\n' +
             'new param: %s' % str(map(lambda arr: map(lambda x: '%.3f' % x, arr), new_param)))
 
     def __learn_batch(self, book_id):
         # pick up at most 100 states and fit parameters
-        mse, var, new_param = self.__fit_parameters()
+        mse, var, new_param, nsamples = self.__fit_parameters()
 
         # store parameter
         self.__update_parameters(book_id, new_param)
 
-        return mse, var, new_param
+        return mse, var, new_param, nsamples
 
     def __fit_parameters(self):
         mses = []
         vars = []
         params = []
+        nsamples = []
         for (p_min, p_max) in [(0, 16), (17, 32), (33, 48), (49, 64)]:
             sampled_x, sampled_y = self.random_sample(50000, p_min, p_max)
             x = np.array(sampled_x)
@@ -147,11 +152,12 @@ class ProgressPositionMovesLearn(LearnBasePlus):
             vars.append(var)
             coef = 127/max(map(lambda x: abs(x), lr.coef_))
             params.append(tuple([i*coef for i in lr.coef_]))
+            nsamples.append(len(sampled_x))
 
         print 'params learned:'
         print params
 
-        return mses, vars, params
+        return mses, vars, params, nsamples
 
     # db related functions
 
