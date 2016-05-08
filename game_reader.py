@@ -3,7 +3,9 @@ from datetime import datetime
 import redis
 import boto3
 from boto3.dynamodb.conditions import Key
+import time
 
+SECONDS_UNTIL_DYNAMODB_READY = 10
 
 class GameReader(object):
     __metaclass__ = ABCMeta
@@ -112,6 +114,9 @@ class DynamoDBReader(GameReader):
                                        ProvisionedThroughput={
                                            'ReadCapacityUnits': 10,
                                            'WriteCapacityUnits': 10})
+            print 'Waiting %d seconds until DynamoDB gets ready' % SECONDS_UNTIL_DYNAMODB_READY
+            time.sleep(SECONDS_UNTIL_DYNAMODB_READY)
+            print 'Done'
 
         table = self.resource.Table(self.table_name)
         return table
