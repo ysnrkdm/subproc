@@ -122,7 +122,7 @@ def main(config_filename):
             print 'Not enough data to process: from_id[%d] and to_id[%d]' % (from_id, to_id)
             # Re-enqueue
             r = ResQ(server=config.redis_hostname_port_from_config(conf), password=conf['redis_password'])
-            # n_inqueue = r.info()['queues']
+            n_inqueue = r.info()['queues']
             n_pending = r.info()['pending']
             n_enqueued = epic_batch_size - len(book_ids) - n_inqueue - n_pending
             print 'buffered %d matches, and %d in queue, %d pending jobs, will add %d jobs' %\
