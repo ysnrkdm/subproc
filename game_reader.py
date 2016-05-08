@@ -101,18 +101,18 @@ class DynamoDBReader(GameReader):
 
     def __get_table(self):
         if not unicode(self.table_name) in self.client.list_tables()['TableNames']:
-            table = self.resource.create_table(TableName=self.table_name,
-                                               KeySchema=[
-                                                   {'AttributeName': 'book_id', 'KeyType': 'HASH'},
-                                                   {'AttributeName': 'board_id', 'KeyType': 'RANGE'}],
-                                               AttributeDefinitions=[
-                                                   {'AttributeName': 'book_id', 'AttributeType': 'N'},
-                                                   {'AttributeName': 'board_id', 'AttributeType': 'N'}],
-                                               ProvisionedThroughput={
-                                                   'ReadCapacityUnits': 10,
-                                                   'WriteCapacityUnits': 10})
-        else:
-            table = self.resource.Table(self.table_name)
+            self.resource.create_table(TableName=self.table_name,
+                                       KeySchema=[
+                                           {'AttributeName': 'book_id', 'KeyType': 'HASH'},
+                                           {'AttributeName': 'board_id', 'KeyType': 'RANGE'}],
+                                       AttributeDefinitions=[
+                                           {'AttributeName': 'book_id', 'AttributeType': 'N'},
+                                           {'AttributeName': 'board_id', 'AttributeType': 'N'}],
+                                       ProvisionedThroughput={
+                                           'ReadCapacityUnits': 10,
+                                           'WriteCapacityUnits': 10})
+
+        table = self.resource.Table(self.table_name)
         return table
 
     def load_by_id(self, book_id):
