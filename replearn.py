@@ -5,7 +5,7 @@ import config
 import sys
 
 
-MAX_BATCH_SIZE_PER_EPIC = 150
+MAX_BATCH_SIZE_PER_EPIC = 100
 
 LATEST_BOOK_ID_CONTINUE_TO_FIND = 10
 
@@ -47,7 +47,7 @@ def learn_books(conf, book_ids):
     learn.store_batch_stats(books)
     learn.learn_and_update_batch(books)
 
-    enqueue_job(conf, len(books))
+    # enqueue_job(conf, len(books))
 
 
 def get_books_to_process(conf, from_id):
@@ -86,6 +86,7 @@ def get_reader(conf):
 
 
 def enqueue_job(conf, nth=1):
+    print 'Enqueue-ing %d runs' % nth
     for i in range(nth):
         r = ResQ(server=config.redis_hostname_port_from_config(conf), password=conf['redis_password'])
         a = get_learn(conf)

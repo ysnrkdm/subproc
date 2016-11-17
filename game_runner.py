@@ -44,13 +44,14 @@ class GameRunner:
         # print output.rstrip()
 
     def play(self, proc, hand):
+	# print hand
         proc.stdin.write(hand + '\n')
         output = proc.stdout.readline()
         output += proc.stdout.readline()
         output += proc.stdout.readline()
         # print output.rstrip()
         # X play XX
-        a = re.findall(r"(.+) play ([a-zA-Z][0-9]|PS)", output.rstrip())
+        a = re.findall(r"(.+) play ([a-zA-Z][0-9]|PS|ps)", output.rstrip())
         # print a
         return a[0][1]
 

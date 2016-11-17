@@ -1,3 +1,6 @@
 numpy
+scipy
 redis
 scikit-learn
+pyres
+boto3

@@ -128,7 +128,7 @@ class LearnBasePlus(LearnBase):
             if 'params_used' in r_param.hgetall(k):
                 ret.append(r_param.hgetall(k))
 
-        sorted_list = sorted(ret, key=lambda x: float(x['Edax_win_rate']))
+        sorted_list = sorted(ret, key=lambda x: float(x.get('Edax_win_rate',0)))
         ranking_list = list(sorted_list)
         if len(ranking_list) < 4:
             ranking_list.append({'empty': 'empty'})
