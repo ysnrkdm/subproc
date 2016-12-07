@@ -161,10 +161,10 @@ class GameRunner:
         self.recorder.store()
 
         if game_board.n_black() > game_board.n_white():
-            won = "Black"
+            won = ("Black", self.proc_black.name)
         elif game_board.n_black() < game_board.n_white():
-            won = "White"
+            won = ("White", self.proc_white.name)
         else:
-            won = "None"
+            won = ("None", '')
 
         return won
