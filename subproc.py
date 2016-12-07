@@ -14,9 +14,10 @@ def get_game_recorder(conf):
 def do_match(conf):
     proc_a_path = conf['proc_a_path']
     proc_b_path = conf['proc_b_path']
+    debug = conf.get('debug', '0') == '1'
 
     with get_game_recorder(conf) as recorder:
-        gr = game_runner.GameRunner(proc_a_path, proc_b_path, recorder)
+        gr = game_runner.GameRunner(proc_a_path, proc_b_path, recorder, debug)
         won = gr.play_a_game()
         print "Game Over! " + won + " won!\n"
 

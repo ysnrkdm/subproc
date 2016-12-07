@@ -60,7 +60,7 @@ class FlatFileRecorder(GameRecorder):
         self.output_path = config_dict['flatfile_output_path']
 
     def add(self, game_board):
-        print game_board
+        # print game_board
         line = game_board.serialize_str()
         self.lines.append(line)
 

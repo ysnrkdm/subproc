@@ -43,13 +43,16 @@ class Board:
     def n_empty(self):
         return self.count_over_board(lambda cell: cell == Empty)
 
-    def n_puttable_for(self, piece):
-        ret = 0
+    def puttables(self, piece):
+        ret = []
         for y in range(len(self.board)):
             for x in range(len(self.board[y])):
                 if self.is_puttable_at(piece, x, y):
-                    ret += 1
+                    ret.append((x, y))
         return ret
+
+    def n_puttable_for(self, piece):
+        return len(self.puttables(piece))
 
     def is_game_over(self):
         return self.n_puttable_for(Black) == 0 and self.n_puttable_for(White) == 0
@@ -170,17 +173,30 @@ class Board:
 
         return count
 
+    def coord_from_handstr(self, handstr):
+        b = re.findall(r"[WB]*([a-zA-Z])([0-9])", handstr)
+        if len(b) > 0:
+            col = b[0][0].lower()
+            row = b[0][1]
+            x = ord(col) - ord('a')
+            y = ord(row) - ord('1')
+            return x, y
+        else:
+            return -1, -1
+
+    def handstr_from_coord(self, coord):
+        x, y = coord
+        sx = chr(ord('a') + x)
+        sy = chr(ord('1') + y)
+        return sx + sy
+
     def put_s(self, stri):
         out = -1
         if stri == 'PS' or stri == 'ps':
             out = 0
         else:
-            b = re.findall(r"[WB]*([a-zA-Z])([0-9])", stri)
-            if len(b) > 0:
-                col = b[0][0].lower()
-                row = b[0][1]
-                x = ord(col) - ord('a')
-                y = ord(row) - ord('1')
+            x, y = self.coord_from_handstr(stri)
+            if x >= 0 and y >= 0:
                 out = self.put(self.turn, x, y)
                 if out == 0:
                     out = -1
