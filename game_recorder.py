@@ -57,7 +57,7 @@ class FlatFileRecorder(GameRecorder):
         pass
 
     def configure(self, title, meta, config_dict):
-        self.output_path = config_dict['output_path']
+        self.output_path = config_dict['flatfile_output_path']
 
     def add(self, game_board):
         print game_board
