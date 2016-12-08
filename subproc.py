@@ -15,18 +15,21 @@ def get_game_recorder(conf):
 def do_match(conf):
     proc_a = {
         "path": conf['proc_a_path'],
-        "n_rand_hands": int(conf.get('proc_n_rand_hands_for_a', '0')),
+        "n_rand_hands": conf.get('proc_n_rand_hands_for_a', 0),
     }
     proc_b = {
         "path": conf['proc_b_path'],
-        "n_rand_hands": int(conf.get('proc_n_rand_hands_for_b', '0')),
+        "n_rand_hands": conf.get('proc_n_rand_hands_for_b', 0),
     }
 
-    debug = conf.get('proc_debug', '0') == '1'
-    randomize_black_white = conf.get('proc_randomize_black_white', '0') == '1'
+    debug = conf.get('proc_debug', 0) == 1
+    randomize_black_white = conf.get('proc_randomize_black_white', 0) == 1
 
-    if randomize_black_white and random.randrange(2) == 1:
-        proc_a, proc_b = proc_b, proc_a
+    if randomize_black_white:
+        print 'Randomization on'
+        if random.randrange(2) == 1:
+            print '... and swapped black and white'
+            proc_a, proc_b = proc_b, proc_a
 
     with get_game_recorder(conf) as recorder:
         gr = game_runner.GameRunner(proc_a['path'], proc_b['path'],
