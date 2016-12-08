@@ -2,6 +2,7 @@ import subprocess
 import re
 import board
 
+N_RAND_HAND_UNTIL = 10
 
 class Player:
 
@@ -99,7 +100,7 @@ class Player:
 
 class GameRunner:
 
-    def __init__(self, proc_black_path, proc_white_path, game_recorder, debug):
+    def __init__(self, proc_black_path, proc_white_path, game_recorder, debug, n_rand_hands_for_black, n_rand_hands_for_white):
         print 'Starting engines...'
         proc_black = Player(proc_black_path, 'proc_black')
         proc_black.debug = debug
@@ -109,6 +110,13 @@ class GameRunner:
 
         self.proc_black = proc_black
         self.proc_white = proc_white
+
+        # Randomization - done in first 10 hands.
+        self.n_rand_hands_for_black = n_rand_hands_for_black
+        self.n_rand_hands_for_white = n_rand_hands_for_white
+        self.n_rand_rest_for_black = min(n_rand_hands_for_black, N_RAND_HAND_UNTIL)
+        self.n_rand_rest_for_white = min(n_rand_hands_for_white, N_RAND_HAND_UNTIL)
+
         self.recorder = game_recorder
 
     def extract_hamlet_param(self):
@@ -130,7 +138,7 @@ class GameRunner:
         is_game_over = game_board.is_game_over()
 
         while not is_game_over:
-            # Process A's turn
+            # Process Black's turn
             ha = self.proc_black.go().lower()
             game_board.put_s(ha)
             print game_board
@@ -141,7 +149,7 @@ class GameRunner:
             if is_game_over:
                 break
 
-            # Process B's turn
+            # Process White's turn
             hb = self.proc_white.go().lower()
             game_board.put_s(hb)
             print game_board
