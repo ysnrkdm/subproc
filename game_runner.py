@@ -1,6 +1,7 @@
 import subprocess
 import re
 import board
+import random
 
 N_RAND_HAND_UNTIL = 10
 
@@ -11,6 +12,8 @@ class Player:
         self.name = default_name
         self.default_name = default_name
         self.debug = False
+        self.n_rand_hands = 0
+        self.n_rand_rest = 0
 
     def go(self):
         self.proc.stdin.write('go\n')
@@ -104,19 +107,18 @@ class GameRunner:
         print 'Starting engines...'
         proc_black = Player(proc_black_path, 'proc_black')
         proc_black.debug = debug
-        proc_white = Player(proc_white_path, 'proc_b')
+        proc_white = Player(proc_white_path, 'proc_white')
         proc_white.debug = debug
         print 'Engines started. Game starting:'
 
+        # Randomization - done in first 10 hands.
+        proc_black.n_rand_hands = n_rand_hands_for_black
+        proc_white.n_rand_hands = n_rand_hands_for_white
+        proc_black.n_rand_rest = min(n_rand_hands_for_black, N_RAND_HAND_UNTIL)
+        proc_white.n_rand_rest = min(n_rand_hands_for_white, N_RAND_HAND_UNTIL)
+
         self.proc_black = proc_black
         self.proc_white = proc_white
-
-        # Randomization - done in first 10 hands.
-        self.n_rand_hands_for_black = n_rand_hands_for_black
-        self.n_rand_hands_for_white = n_rand_hands_for_white
-        self.n_rand_rest_for_black = min(n_rand_hands_for_black, N_RAND_HAND_UNTIL)
-        self.n_rand_rest_for_white = min(n_rand_hands_for_white, N_RAND_HAND_UNTIL)
-
         self.recorder = game_recorder
 
     def extract_hamlet_param(self):
@@ -126,6 +128,38 @@ class GameRunner:
             return self.proc_white.show_hamlet_param()
         else:
             return 'No Hamlet'
+
+    def go_for(self, game_board, proc):
+        if proc.n_rand_rest > 0:
+            if random.randrange(proc.n_rand_rest) == 0:
+                # Puttables
+                puttables = game_board.puttables(game_board.turn)
+                n_puttables = len(puttables)
+                if n_puttables > 0:
+                    ha_x, ha_y = puttables[random.randrange(n_puttables)]
+                    hand = game_board.handstr_from_coord(ha_x, ha_y)
+                    proc.n_rand_rest -= 1
+                    print '>> subproc plays %s in place of %s (%d/%d)' % (
+                        hand,
+                        proc.name,
+                        proc.n_rand_hands - proc.n_rand_rest,
+                        proc.n_rand_hands
+                    )
+                    proc.play(hand)
+                    return hand
+
+        return proc.go().lower()
+
+    def play_a_turn(self, game_board, proc_attacker, proc_defender):
+        # Process Black's turn
+        ha = self.go_for(game_board, proc_attacker)
+        game_board.put_s(ha)
+        print game_board
+        self.recorder.add(game_board)
+        proc_defender.play(ha)
+
+        is_game_over = game_board.is_game_over()
+        return is_game_over
 
     def play_a_game(self):
         self.proc_black.init()
@@ -139,24 +173,12 @@ class GameRunner:
 
         while not is_game_over:
             # Process Black's turn
-            ha = self.proc_black.go().lower()
-            game_board.put_s(ha)
-            print game_board
-            self.recorder.add(game_board)
-            self.proc_white.play(ha)
-
-            is_game_over = game_board.is_game_over()
+            is_game_over = self.play_a_turn(game_board, self.proc_black, self.proc_white)
             if is_game_over:
                 break
 
             # Process White's turn
-            hb = self.proc_white.go().lower()
-            game_board.put_s(hb)
-            print game_board
-            self.recorder.add(game_board)
-            self.proc_black.play(hb)
-
-            is_game_over = game_board.is_game_over()
+            is_game_over = self.play_a_turn(game_board, self.proc_white, self.proc_black)
             if is_game_over:
                 break
 

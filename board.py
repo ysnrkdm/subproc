@@ -184,8 +184,7 @@ class Board:
         else:
             return -1, -1
 
-    def handstr_from_coord(self, coord):
-        x, y = coord
+    def handstr_from_coord(self, x, y):
         sx = chr(ord('a') + x)
         sy = chr(ord('1') + y)
         return sx + sy
