@@ -79,7 +79,7 @@ class LearnBasePlus(LearnBase):
                     pass
                 book_ids.append(book_id)
                 black_name = meta['proc_a']
-                white_name = meta['prob_b']
+                white_name = meta['proc_b']
                 params.add(meta['hamletparam'])
             except:
                 import traceback

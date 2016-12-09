@@ -68,6 +68,8 @@ class FlatFileRecorder(GameRecorder):
         path = self.output_path + '/' + self.title + '_' + self.timestamp
         print 'Writing to file: ' + path + '\n'
         f = open(path, 'w+')
+        f.write("% Black: " + self.meta['proc_a'] + "\n")
+        f.write("% White: " + self.meta['proc_b'] + "\n")
         for line in self.lines:
             f.write(line + "\n")
         f.close()

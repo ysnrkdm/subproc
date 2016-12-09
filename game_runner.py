@@ -182,7 +182,7 @@ class GameRunner:
             if is_game_over:
                 break
 
-        self.recorder.add_meta({'proc_a': self.proc_black.name, 'prob_b': self.proc_white.name,
+        self.recorder.add_meta({'proc_a': self.proc_black.name, 'proc_b': self.proc_white.name,
                                 'hamletparam': self.extract_hamlet_param()})
 
         self.proc_black.end_process()
