@@ -5,6 +5,7 @@ import random
 
 N_RAND_HAND_UNTIL = 10
 
+
 class Player:
 
     def __init__(self, path, default_name):
