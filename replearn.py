@@ -7,7 +7,7 @@ import sys
 
 MAX_BATCH_SIZE_PER_EPIC = 100
 
-LATEST_BOOK_ID_CONTINUE_TO_FIND = 10
+LATEST_BOOK_ID_CONTINUE_TO_FIND = 50
 
 SECONDS = 30
 
@@ -46,6 +46,8 @@ def learn_books(conf, book_ids):
     learn.configure(conf)
     learn.store_batch_stats(books)
     learn.learn_and_update_batch(books)
+
+    enqueue_job(conf, len(books))
 
 
 def get_books_to_process(conf, from_id):
