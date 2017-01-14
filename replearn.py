@@ -27,7 +27,7 @@ def get_game_reader(conf):
 def learn_books(conf, book_ids):
     reader = get_game_reader(conf)
 
-    print 'will process %s' % (str(book_ids))
+    print 'will process %d %s' % (len(book_ids), (str(book_ids)))
 
     books = []
     for i in book_ids:
@@ -101,7 +101,7 @@ def main(config_filename):
 
         most_book_id, book_ids = get_books_to_process(conf, from_id)
 
-        print 'greatest book id found is %d' % most_book_id
+        print 'greatest book id found is %d' % (max(book_ids) if len(book_ids) > 0 else last)
 
         to_id = max(from_id, most_book_id)
 
