@@ -5,15 +5,6 @@ import config
 import sys
 
 
-MAX_BATCH_SIZE_PER_EPIC = 100
-
-LATEST_BOOK_ID_CONTINUE_TO_FIND = 50
-
-SECONDS = 30
-
-ENQUEUE_BUFFER_SECS = 1
-
-
 def get_instance_from_config(conf, section):
     mod = __import__(conf[section + '_from'], fromlist=[conf[section + '_class']])
     class_def = getattr(mod, conf[section + '_class'])
@@ -55,7 +46,7 @@ def learn_books(conf, book_ids):
 
 
 def get_books_to_process(conf, from_id):
-    retry_counter = LATEST_BOOK_ID_CONTINUE_TO_FIND
+    retry_counter = conf['replearn_latest_book_id_continue_to_find']
     reader = get_game_reader(conf)
     current_id = from_id
     ret = []
@@ -71,7 +62,7 @@ def get_books_to_process(conf, from_id):
         else:
             retry_counter -= 1
         print 'id %d %s' % (current_id, ('found' if id_exists else 'not found'))
-        if current_id - from_id > MAX_BATCH_SIZE_PER_EPIC:
+        if current_id - from_id > conf['learn_max_batch_size_per_epic']:
             print 'more than %d found. start learning the batch' % (current_id - from_id)
             break
 
@@ -91,7 +82,7 @@ def enqueue_job(conf, nth=1):
         params = a.read_parameters()
         r.enqueue(ElJemTask, (conf, params))
         print r.info()
-        time.sleep(ENQUEUE_BUFFER_SECS)
+        time.sleep(conf['replearn_enqueue_buffer_interval_secs'])
 
 
 def main(config_filename):
@@ -127,7 +118,7 @@ def main(config_filename):
                   (len(book_ids), n_inqueue, n_pending, n_enqueued)
             enqueue_job(conf, n_enqueued)
 
-        time.sleep(SECONDS)
+        time.sleep(conf['replearn_iteration_interval_secs'])
 
 
 if __name__ == '__main__':
