@@ -30,8 +30,6 @@ def get_game_reader(conf):
 
 def learn_books(conf, book_ids):
     reader = get_reader(conf)
-    learn = get_learn(conf)
-    learn.configure(conf)
 
     print 'will process %s' % (str(book_ids))
 
@@ -44,10 +42,10 @@ def learn_books(conf, book_ids):
             if a_book_reversed[0]['end']:
                 books.append((i, a_book_reversed, meta))
 
+    learn = get_learn(conf)
+    learn.configure(conf)
     learn.store_batch_stats(books)
     learn.learn_and_update_batch(books)
-
-    # enqueue_job(conf, len(books))
 
 
 def get_books_to_process(conf, from_id):
@@ -111,10 +109,7 @@ def main(config_filename):
 
         print 'last processed: %d' % last
 
-        from_id = last + 1
-
-        if from_id == 0:
-            from_id = 1
+        from_id = max(last + 1, 1)
 
         most_book_id, book_ids = get_books_to_process(conf, from_id)
 
