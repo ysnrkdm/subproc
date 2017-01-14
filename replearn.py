@@ -14,22 +14,27 @@ SECONDS = 30
 ENQUEUE_BUFFER_SECS = 1
 
 
-def get_learn(conf):
-    mod = __import__(conf['learn_from'], fromlist=[conf['learn_class']])
-    class_def = getattr(mod, conf['learn_class'])
+def get_instance_from_config(conf, section):
+    mod = __import__(conf[section + '_from'], fromlist=[conf[section + '_class']])
+    class_def = getattr(mod, conf[section + '_class'])
     obj = class_def()
     return obj
+
+
+def get_learn(conf):
+    l = get_instance_from_config(conf, 'learn')
+    l.configure(conf)
+    return l
 
 
 def get_game_reader(conf):
-    mod = __import__(conf['game_reader_from'], fromlist=[conf['game_reader_class']])
-    class_def = getattr(mod, conf['game_reader_class'])
-    obj = class_def()
-    return obj
+    r = get_instance_from_config(conf, 'game_reader')
+    r.configure('', '', conf)
+    return r
 
 
 def learn_books(conf, book_ids):
-    reader = get_reader(conf)
+    reader = get_game_reader(conf)
 
     print 'will process %s' % (str(book_ids))
 
@@ -43,7 +48,6 @@ def learn_books(conf, book_ids):
                 books.append((i, a_book_reversed, meta))
 
     learn = get_learn(conf)
-    learn.configure(conf)
     learn.store_batch_stats(books)
     learn.learn_and_update_batch(books)
 
@@ -52,7 +56,7 @@ def learn_books(conf, book_ids):
 
 def get_books_to_process(conf, from_id):
     retry_counter = LATEST_BOOK_ID_CONTINUE_TO_FIND
-    reader = get_reader(conf)
+    reader = get_game_reader(conf)
     current_id = from_id
     ret = []
     id_exists = len(reader.load_by_id(current_id)[1]) > 0
@@ -75,14 +79,8 @@ def get_books_to_process(conf, from_id):
 
 
 def get_num_working_processes(conf):
-    reader = get_reader(conf)
+    reader = get_game_reader(conf)
     return reader.num_working_processes()
-
-
-def get_reader(conf):
-    r = get_game_reader(conf)
-    r.configure('', '', conf)
-    return r
 
 
 def enqueue_job(conf, nth=1):
@@ -90,7 +88,6 @@ def enqueue_job(conf, nth=1):
     for i in range(nth):
         r = ResQ(server=config.redis_hostname_port_from_config(conf), password=conf['redis_password'])
         a = get_learn(conf)
-        a.configure(conf)
         params = a.read_parameters()
         r.enqueue(ElJemTask, (conf, params))
         print r.info()
@@ -99,14 +96,12 @@ def enqueue_job(conf, nth=1):
 
 def main(config_filename):
     conf = config.config_by_filename(config_filename)
-    q = get_learn(conf)
-    print 'Will use %s' % q.name()
+    print 'Will use %s' % get_learn(conf).name()
     epic_batch_size = conf['learn_epic_batch_size']
     print 'Batch size per epic is %d' % epic_batch_size
 
     while True:
         learn = get_learn(conf)
-        learn.configure(conf)
         last = learn.last_processed()
 
         print 'last processed: %d' % last
