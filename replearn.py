@@ -35,7 +35,7 @@ def learn_books(conf, book_ids):
         meta, a_book = reader.load_by_id(i)
         if len(a_book) > 0:
             a_book_sorted = sorted(a_book, key=lambda x: int(x['turn']))
-            a_book_reversed = list(reversed(a_book_sorted))
+            a_book_reversed = list(reversed(a_book_sorted))         # reverse because make 0th element terminal state
             if a_book_reversed[0]['end']:
                 books.append((i, a_book_reversed, meta))
 
