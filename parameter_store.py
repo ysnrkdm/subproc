@@ -47,13 +47,26 @@ class NamedParameterStore(ParameterStore):
         self.conf = {}
         self.name = name
 
+    def __normalize_key_for_param(self, a_key):
+        prefixes = []
+        if REDIS_KEY_PREFIX not in a_key:
+            prefixes.append(REDIS_KEY_PREFIX)
+        if self.name not in a_key:
+            prefixes.append(self.name)
+
+        if len(prefixes) > 0:
+            prefixes.append(a_key)
+            ret = ':'.join(prefixes)
+        else:
+            ret = a_key
+
+        return ret
+
     def _key_for_param(self, key_or_keys):
         if isinstance(key_or_keys, list):
-            a_keys = [REDIS_KEY_PREFIX, self.name] + key_or_keys
-            return ':'.join(a_keys)
+            return [self.__normalize_key_for_param(key) for key in key_or_keys]
         elif isinstance(key_or_keys, str):
-            a_keys = [REDIS_KEY_PREFIX, self.name]
-            return ':'.join(a_keys) + key_or_keys
+            return self.__normalize_key_for_param(key_or_keys)
         else:
             raise ValueError("Only str or list key is acceptable")
 
