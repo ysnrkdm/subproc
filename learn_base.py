@@ -1,4 +1,3 @@
-import redis
 import board
 import slack
 from abc import ABCMeta, abstractmethod

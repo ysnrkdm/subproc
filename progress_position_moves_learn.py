@@ -1,4 +1,3 @@
-import board
 import random
 import slack
 from learn_base import LearnBasePlus
@@ -7,49 +6,8 @@ from sklearn.utils import resample
 from sklearn import linear_model
 from math import sqrt
 from itertools import chain
-
-
-def param_header():
-    return 2
-
-
-def param_default():
-    return [
-        [100, 99, -1, -1, -1, -1, 3, 8, 20],
-        [75, 99, 2,  -5,  7,  6,  4,  5, 5],
-        [25, 99, 2,  -5,  -7,  -6,  4,  5, 5],
-        [1, 100, 50, 30, 30, 30, 30, 30, 30]
-    ]
-
-
-def state_from_hash(state):
-    return tuple(map(lambda x: int(x), state.split(":")[4:]))
-
-
-def board_from_a_book(a_book):
-    a_board = board.Board()
-    a_board.deserialize(a_book['book'], a_book['whosturn'], a_book['turn'])
-    return a_board
-
-
-def counts(a_book, side):
-    a_board = board_from_a_book(a_book)
-    turn = a_board.turn_from_string(side)
-    moves = a_board.n_puttable_for(turn)
-    a = a_board.mask_count(turn, 0x8100000000000081)
-    b = a_board.mask_count(turn, 0x4281000000008142)
-    c = a_board.mask_count(turn, 0x0042000000004200)
-    d = a_board.mask_count(turn, 0x2400810000810024)
-    e = a_board.mask_count(turn, 0x1800008181000018)
-    f = a_board.mask_count(turn, 0x003C424242423C00)
-    g = a_board.mask_count(turn, 0x0000240000240000)
-    h = a_board.mask_count(turn, 0x0000183C3C180000)
-    return (64 - a_board.n_empty()), moves, a, b, c, d, e, f, g, h
-
-
-def hash_from_book(a_book, side):
-    count_list = counts(a_book, side)
-    return ':'.join(map(lambda x: str(x), count_list))
+from parameter_progress_position_moves_learn import ProgressPositionMovesParameter
+from parameter import board_from_a_book
 
 
 class ProgressPositionMovesLearn(LearnBasePlus):
@@ -58,6 +16,7 @@ class ProgressPositionMovesLearn(LearnBasePlus):
         self.a = 0.03
         self.b = 0.003           # learning rate
         self.l = 0.90            # turn decay in TD-lambda
+        self.parameter = ProgressPositionMovesParameter()
 
     def name(self):
         return 'progresspositionmovelearn'
@@ -79,7 +38,7 @@ class ProgressPositionMovesLearn(LearnBasePlus):
 
     def __update_state_map(self, a_book, side, turn_left, value):
         r_param = self._param_store()
-        key = ['param', 'state', hash_from_book(a_book, side)]
+        key = ['param', 'state', self.parameter.hash_from_book(a_book, side)]
         if not r_param.exists(key):
             r_param.set(key, 0)
 
@@ -100,11 +59,10 @@ class ProgressPositionMovesLearn(LearnBasePlus):
         for num_try in range(5):
             for i in range(num):
                 key_rand = random.choice(states)
-                state = state_from_hash(key_rand)
-                progress = state[0]
+                progress = self.parameter.phase_from_hash(key_rand)
                 value = float(r_param.get(key_rand))
                 if p_min <= progress <= p_max:
-                    ret.add((state[1:], value))
+                    ret.add((self.parameter.features_from_hash(key_rand), value))
             if len(ret) >= num:
                 break
 
@@ -210,10 +168,10 @@ class ProgressPositionMovesLearn(LearnBasePlus):
         r_param = self._param_store()
         key = ['param']
         if not r_param.exists(key):
-            self.__store_parameters(param_default())
+            self.__store_parameters(self.parameter.default_value())
         start = ord('A')
-        ret = [param_header()]
-        for i in range(len(list(chain.from_iterable(param_default())))):
+        ret = [self.parameter.header()]
+        for i in range(len(list(chain.from_iterable(self.parameter.default_value())))):
             ret.append(int(r_param.hget(key, chr(start + i))))
 
         print 'read parameter %s' % str(tuple(ret))
