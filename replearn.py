@@ -29,6 +29,7 @@ def learn_books(conf, book_ids):
 
     print 'will process %d %s' % (len(book_ids), (str(book_ids)))
 
+    # get actual book data from book_ids
     books = []
     for i in book_ids:
         meta, a_book = reader.load_by_id(i)

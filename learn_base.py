@@ -38,10 +38,6 @@ class LearnBasePlus(LearnBase):
     def __init__(self):
         self.conf = {}
 
-    def key_for_param(self, keys):
-        a_keys = [REDIS_KEY_PREFIX, self.name()] + keys
-        return ':'.join(a_keys)
-
     @abstractmethod
     def name(self):
         pass
@@ -49,10 +45,16 @@ class LearnBasePlus(LearnBase):
     def configure(self, conf_dict):
         self.conf = conf_dict
 
-    def _redis_param(self):
-        r_param = redis.Redis(host=self.conf['redis_hostname'], port=self.conf['redis_port'],
-                              db=self.conf['redis_db_param'], password=self.conf['redis_password'])
-        return r_param
+    def _param_store(self):
+        store = self.__get_parameter_store_object()
+        store.configure(self.conf)
+        return store
+
+    def __get_parameter_store_object(self):
+        mod = __import__(self.conf['learn_parameter_store_from'], fromlist=[self.conf['learn_parameter_store_class']])
+        class_def = getattr(mod, self.conf['learn_parameter_store_class'])
+        obj = class_def()
+        return obj
 
     def store_batch_stats(self, books):
         black_wins = 0
@@ -96,8 +98,7 @@ class LearnBasePlus(LearnBase):
 
         params_used = ' / '.join(params)
 
-        key_for_update_stats = self.key_for_param(['stats', str(book_id_from), str(book_id_to)])
-        r_param = self._redis_param()
+        r_param = self._param_store()
         payload = {
             black_name + '_win_rate': black_win_rate,
             white_name + '_win_rate': white_win_rate,
@@ -107,7 +108,7 @@ class LearnBasePlus(LearnBase):
             'params_used': params_used,
             'diffs': sorted(disc_diff)
         }
-        r_param.hmset(key_for_update_stats, payload)
+        r_param.hmset(['stats', str(book_id_from), str(book_id_to)], payload)
 
         slack.post_message(
                 ('Done matches [%s], from %d to %d' % (self.name(), book_id_from, book_id_to)) + '\n' +
@@ -120,15 +121,14 @@ class LearnBasePlus(LearnBase):
         self.__show_stats()
 
     def __show_stats(self):
-        r_param = self._redis_param()
-        key_for_update_stats = self.key_for_param(['stats', '*'])
+        r_param = self._param_store()
 
         ret = []
-        for k in r_param.keys(key_for_update_stats):
+        for k in r_param.keys(['stats', '*']):
             if 'params_used' in r_param.hgetall(k):
                 ret.append(r_param.hgetall(k))
 
-        sorted_list = sorted(ret, key=lambda x: float(x.get('Edax_win_rate',0)))
+        sorted_list = sorted(ret, key=lambda x: float(x.get('Edax_win_rate', 0)))
         ranking_list = list(sorted_list)
         if len(ranking_list) < 4:
             ranking_list.append({'empty': 'empty'})

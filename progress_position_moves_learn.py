@@ -46,8 +46,8 @@ class ProgressPositionMovesLearn(LearnBasePlus):
         return book_id
 
     def __update_state_map(self, a_book, side, turn_left, value):
-        r_param = self._redis_param()
-        key = self.key_for_param(['param', 'state', self.__hash_from_book(a_book, side)])
+        r_param = self._param_store()
+        key = ['param', 'state', self.__hash_from_book(a_book, side)]
         if not r_param.exists(key):
             r_param.set(key, 0)
 
@@ -76,10 +76,8 @@ class ProgressPositionMovesLearn(LearnBasePlus):
     # Learning related functions
 
     def random_sample(self, num, p_min, p_max):
-        r_param = self._redis_param()
-        key = self.key_for_param(['param', 'state', '*'])
-        print key
-        states = r_param.keys(key)
+        r_param = self._param_store()
+        states = r_param.keys(['param', 'state', '*'])
         len(states)
         ret = set()
         for num_try in range(5):
@@ -127,7 +125,7 @@ class ProgressPositionMovesLearn(LearnBasePlus):
 
     def __fit_parameters(self):
         mses = []
-        vars = []
+        scores = []
         params = []
         nsamples = []
         for (p_min, p_max) in [(0, 16), (17, 32), (33, 48), (49, 64)]:
@@ -147,23 +145,23 @@ class ProgressPositionMovesLearn(LearnBasePlus):
             test_x = np.array(stest_x)
             test_y = np.array(stest_y)
             mse = sqrt(np.mean((lr.predict(test_x) - test_y) ** 2))
-            var = lr.score(test_x, test_y)
+            score = lr.score(test_x, test_y)
             mses.append(mse)
-            vars.append(var)
-            coef = 127/max(map(lambda x: abs(x), lr.coef_))
+            scores.append(score)
+            coef = 127/max(map(lambda q: abs(q), lr.coef_))
             params.append(tuple([i*coef for i in lr.coef_]))
             nsamples.append(len(sampled_x))
 
         print 'params learned:'
         print params
 
-        return mses, vars, params, nsamples
+        return mses, scores, params, nsamples
 
     # db related functions
 
     def last_processed(self):
-        r_param = self._redis_param()
-        key_last_processed = self.key_for_param(['last_processed'])
+        r_param = self._param_store()
+        key_last_processed = ['last_processed']
         if not r_param.exists(key_last_processed):
             r_param.set(key_last_processed, -1)
 
@@ -172,19 +170,17 @@ class ProgressPositionMovesLearn(LearnBasePlus):
     def store_parameters(self, parameters_in):
         start = ord('A')
         parameters = list(chain.from_iterable(parameters_in))
-        r_param = self._redis_param()
-        key = self.key_for_param(['param'])
+        r_param = self._param_store()
         iparameters = map(lambda x: int(x), parameters)
         for par in iparameters:
-            r_param.hset(key, chr(start), par)
+            r_param.hset(['param'], chr(start), par)
             start += 1
 
     def __update_parameters(self, id_processed, parameters):
         self.store_parameters(parameters)
 
-        r_param = self._redis_param()
-        key_last_processed = self.key_for_param(['last_processed'])
-        r_param.set(key_last_processed, id_processed)
+        r_param = self._param_store()
+        r_param.set(['last_processed'], id_processed)
 
     def __param_header(self):
         return 2
@@ -198,8 +194,8 @@ class ProgressPositionMovesLearn(LearnBasePlus):
         ]
 
     def read_parameters(self):
-        r_param = self._redis_param()
-        key = self.key_for_param(['param'])
+        r_param = self._param_store()
+        key = ['param']
         if not r_param.exists(key):
             self.store_parameters(self.__param_default())
         start = ord('A')
