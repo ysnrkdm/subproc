@@ -54,3 +54,8 @@ class RedisParameterStore(NamedParameterStore):
         r_param = self._redis_param()
         fully_qualified_key = self._key_for_param(key)
         return r_param.hmset(fully_qualified_key, mapping)
+
+    def hgetall(self, key):
+        r_param = self._redis_param()
+        fully_qualified_key = self._key_for_param(key)
+        return r_param.hgetall(fully_qualified_key)

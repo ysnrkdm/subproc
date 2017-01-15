@@ -38,6 +38,9 @@ class ParameterStore(object):
     def hmset(self, key, mapping):
         pass
 
+    @abstractmethod
+    def hgetall(self, key):
+        pass
 
 class NamedParameterStore(ParameterStore):
     def __init__(self, name):
@@ -87,4 +90,8 @@ class NamedParameterStore(ParameterStore):
 
     @abstractmethod
     def hmset(self, key, mapping):
+        pass
+
+    @abstractmethod
+    def hgetall(self, key):
         pass
