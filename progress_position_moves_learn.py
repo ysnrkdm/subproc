@@ -78,7 +78,7 @@ class ProgressPositionMovesLearn(LearnBasePlus):
     def random_sample(self, num, p_min, p_max):
         r_param = self._param_store()
         states = r_param.keys(['param', 'state', '*'])
-        len(states)
+        print states
         ret = set()
         for num_try in range(5):
             for i in range(num):
