@@ -42,6 +42,7 @@ class ParameterStore(object):
     def hgetall(self, key):
         pass
 
+
 class NamedParameterStore(ParameterStore):
     def __init__(self, name):
         self.conf = {}
@@ -63,12 +64,19 @@ class NamedParameterStore(ParameterStore):
         return ret
 
     def _key_for_param(self, key_or_keys):
+        prefixes = []
         if isinstance(key_or_keys, list):
-            return [self.__normalize_key_for_param(key) for key in key_or_keys]
+            suffix = ':'.join(key_or_keys)
         elif isinstance(key_or_keys, str):
-            return self.__normalize_key_for_param(key_or_keys)
+            suffix = key_or_keys
         else:
             raise ValueError("Only str or list key is acceptable")
+
+        if REDIS_KEY_PREFIX not in suffix:
+            prefixes.append(REDIS_KEY_PREFIX)
+        if self.name not in suffix:
+            prefixes.append(self.name)
+        return ':'.join(prefixes + [suffix])
 
     def configure(self, conf_dict):
         self.conf = conf_dict
