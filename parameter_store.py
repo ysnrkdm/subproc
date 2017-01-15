@@ -30,15 +30,29 @@ class ParameterStore(object):
     def hset(self, key, field, value):
         pass
 
+    @abstractmethod
+    def hmget(self, key, fields):
+        pass
+
+    @abstractmethod
+    def hmset(self, key, mapping):
+        pass
+
 
 class NamedParameterStore(ParameterStore):
     def __init__(self, name):
         self.conf = {}
         self.name = name
 
-    def _key_for_param(self, keys_array):
-        a_keys = [REDIS_KEY_PREFIX, self.name] + keys_array
-        return ':'.join(a_keys)
+    def _key_for_param(self, key_or_keys):
+        if isinstance(key_or_keys, list):
+            a_keys = [REDIS_KEY_PREFIX, self.name] + key_or_keys
+            return ':'.join(a_keys)
+        elif isinstance(key_or_keys, str):
+            a_keys = [REDIS_KEY_PREFIX, self.name]
+            return ':'.join(a_keys) + key_or_keys
+        else:
+            raise ValueError("Only str or list key is acceptable")
 
     def configure(self, conf_dict):
         self.conf = conf_dict
@@ -65,4 +79,12 @@ class NamedParameterStore(ParameterStore):
 
     @abstractmethod
     def hset(self, key, field, value):
+        pass
+
+    @abstractmethod
+    def hmget(self, key, fields):
+        pass
+
+    @abstractmethod
+    def hmset(self, key, mapping):
         pass

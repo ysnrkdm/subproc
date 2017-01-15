@@ -4,11 +4,11 @@ import redis
 
 class RedisParameterStore(NamedParameterStore):
     def __init__(self, name):
-        super(RedisParameterStore).__init__(name)
+        super(RedisParameterStore, self).__init__(name)
         self.r_param = None
 
     def configure(self, conf_dict):
-        super(RedisParameterStore).configure(conf_dict)
+        super(RedisParameterStore, self).configure(conf_dict)
         self.r_param = redis.Redis(host=self.conf['redis_hostname'], port=self.conf['redis_port'],
                                    db=self.conf['redis_db_param'], password=self.conf['redis_password'])
 
@@ -44,3 +44,13 @@ class RedisParameterStore(NamedParameterStore):
         r_param = self._redis_param()
         fully_qualified_key = self._key_for_param(key)
         return r_param.hset(fully_qualified_key, field, value)
+
+    def hmget(self, key, fields):
+        r_param = self._redis_param()
+        fully_qualified_key = self._key_for_param(key)
+        return r_param.hmget(fully_qualified_key, fields)
+
+    def hmset(self, key, mapping):
+        r_param = self._redis_param()
+        fully_qualified_key = self._key_for_param(key)
+        return r_param.hmset(fully_qualified_key, mapping)

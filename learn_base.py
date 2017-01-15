@@ -53,7 +53,7 @@ class LearnBasePlus(LearnBase):
     def __get_parameter_store_object(self):
         mod = __import__(self.conf['learn_parameter_store_from'], fromlist=[self.conf['learn_parameter_store_class']])
         class_def = getattr(mod, self.conf['learn_parameter_store_class'])
-        obj = class_def()
+        obj = class_def(self.name())
         return obj
 
     def store_batch_stats(self, books):
