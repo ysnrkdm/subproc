@@ -42,6 +42,10 @@ class ParameterStore(object):
     def hgetall(self, key):
         pass
 
+    @abstractmethod
+    def delete(self, key):
+        pass
+
 
 class NamedParameterStore(ParameterStore):
     def __init__(self, name):
@@ -115,4 +119,8 @@ class NamedParameterStore(ParameterStore):
 
     @abstractmethod
     def hgetall(self, key):
+        pass
+
+    @abstractmethod
+    def delete(self, key):
         pass
