@@ -20,3 +20,4 @@ class ParallelLearnerTask(object):
             "nsample": nsample
         }
         r_param.hmset(key, mapping)
+        print 'done learning, waiting for next task'

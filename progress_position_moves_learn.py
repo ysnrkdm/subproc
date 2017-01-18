@@ -12,6 +12,7 @@ from parameter import board_from_a_book
 from pyres import ResQ
 from parallel_learner_task import ParallelLearnerTask
 import config
+from ast import literal_eval
 
 
 class ProgressPositionMovesLearn(LearnBasePlus):
@@ -129,10 +130,10 @@ class ProgressPositionMovesLearn(LearnBasePlus):
                 key = ['fitting', str(phase_from), str(phase_to)]
                 if r_param.exists(key):
                     ret = r_param.hgetall(key)
-                    mses.append(ret['mse'])
-                    scores.append(ret['score'])
-                    params.append(ret['param'])
-                    nsamples.append(ret['nsample'])
+                    mses.append(float(ret['mse']))
+                    scores.append(float(ret['score']))
+                    params.append(literal_eval(ret['param']))
+                    nsamples.append(int(ret['nsample']))
                 else:
                     flag = True
 
