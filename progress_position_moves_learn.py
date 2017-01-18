@@ -155,10 +155,12 @@ class ProgressPositionMovesLearn(LearnBasePlus):
         num = len(y)
         x, y = resample(x, y, n_samples=num)
 
+        print 'done random sampling %d samples. starting fitting...' % num
         lr = linear_model.LinearRegression(fit_intercept=True)
 
         lr.fit(x, y)
 
+        print 'done fitting, checking RMSE'
         # RMSE
         stest_x, stest_y = self.__random_sample(50000, phase_from, phase_to)
         test_x = np.array(stest_x)
