@@ -13,6 +13,7 @@ from pyres import ResQ
 from parallel_learner_task import ParallelLearnerTask
 import config
 from ast import literal_eval
+from replearn import get_instance_from_config
 
 
 class ProgressPositionMovesLearn(LearnBasePlus):
@@ -21,10 +22,11 @@ class ProgressPositionMovesLearn(LearnBasePlus):
         self.a = 0.03
         self.b = 0.003           # learning rate
         self.l = 0.90            # turn decay in TD-lambda
-        self.parameter = ProgressPositionMovesParameter()
+        self.parameter = None
 
     def configure(self, conf_dict):
         super(ProgressPositionMovesLearn, self).configure(conf_dict)
+        self.parameter = get_instance_from_config('learn_learn_for_path')
         self.parameter.configure(self.conf)
 
     def name(self):
