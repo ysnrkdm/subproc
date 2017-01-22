@@ -26,7 +26,7 @@ class ProgressPositionMovesLearn(LearnBasePlus):
 
     def configure(self, conf_dict):
         super(ProgressPositionMovesLearn, self).configure(conf_dict)
-        self.parameter = get_instance_from_config('learn_learn_for_path')
+        self.parameter = get_instance_from_config(self.conf, 'learn_learn_for_path')
         self.parameter.configure(self.conf)
 
     def name(self):
