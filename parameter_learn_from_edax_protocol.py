@@ -7,7 +7,7 @@ from ast import literal_eval
 def counts(a_book, side, path):
     a_board = board_from_a_book(a_book)
     sfen = a_board.serialize_str()
-    command = (path + " -h \"\"" % sfen)
+    command = (path + " -h \"%s\"") % sfen
     hash_in_list_str = check = commands.getoutput(command)
     hash_in_list = literal_eval(hash_in_list_str)
     return [(64 - a_board.n_empty())] + hash_in_list
