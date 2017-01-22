@@ -10,7 +10,7 @@ def counts(a_book, side, path):
     command = (path + " -h \"%s\"") % sfen
     hash_in_list_str = check = commands.getoutput(command)
     hash_in_list = literal_eval(hash_in_list_str)
-    return [(64 - a_board.n_empty())] + hash_in_list
+    return [(64 - a_board.n_empty())] + [int(x) for x in hash_in_list]
 
 
 class LearnFromEdaxProtocolProcessParameter(ProgressPositionMovesParameter):
