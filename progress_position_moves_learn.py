@@ -23,6 +23,10 @@ class ProgressPositionMovesLearn(LearnBasePlus):
         self.l = 0.90            # turn decay in TD-lambda
         self.parameter = ProgressPositionMovesParameter()
 
+    def configure(self, conf_dict):
+        super(ProgressPositionMovesLearn, self).configure(conf_dict)
+        self.parameter.configure(self.conf)
+
     def name(self):
         return 'progresspositionmovelearn'
 

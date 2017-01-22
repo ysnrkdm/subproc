@@ -12,6 +12,10 @@ class ParameterBase(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
+    def configure(self, conf):
+        pass
+
+    @abstractmethod
     def header(self):
         pass
 
@@ -33,6 +37,11 @@ class ParameterBase(object):
 
 
 class ParameterBasePlus(ParameterBase):
+
+    @abstractmethod
+    def configure(self, conf):
+        pass
+
     @abstractmethod
     def header(self):
         pass

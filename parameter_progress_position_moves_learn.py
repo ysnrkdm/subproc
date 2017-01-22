@@ -21,6 +21,9 @@ class ProgressPositionMovesParameter(ParameterBasePlus):
     def __init__(self):
         pass
 
+    def configure(self, conf):
+        pass
+
     def header(self):
         return 2
 
